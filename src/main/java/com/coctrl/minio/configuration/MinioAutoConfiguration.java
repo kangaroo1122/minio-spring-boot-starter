@@ -28,13 +28,13 @@ public class MinioAutoConfiguration {
 
     private final MinioProperties properties;
 
-    public MinioAutoConfiguration(MinioProperties properties){
+    public MinioAutoConfiguration(MinioProperties properties) {
         this.properties = properties;
     }
 
     @Bean(name = "minioClientProvider")
     @ConditionalOnMissingBean(MinioClientProvider.class)
-    public MinioClientProvider minioClientProvider(){
+    public MinioClientProvider minioClientProvider() {
         return new MinioClientProviderImpl();
     }
 
@@ -47,7 +47,7 @@ public class MinioAutoConfiguration {
 
     @Bean
     @ConditionalOnMissingBean(MinioService.class)
-    public MinioService minioService(ExtendMinioClient extendMinioClient){
+    public MinioService minioService(ExtendMinioClient extendMinioClient) {
         return new MinioService(properties, extendMinioClient);
     }
 }
