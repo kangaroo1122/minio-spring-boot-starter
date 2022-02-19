@@ -2,6 +2,7 @@ package com.coctrl.minio.configuration;
 
 import com.coctrl.minio.constant.MinioConstant;
 import com.coctrl.minio.service.MinioService;
+import com.coctrl.minio.service.client.ExtendMinioClient;
 import com.coctrl.minio.service.client.MinioClientProvider;
 import com.coctrl.minio.service.client.MinioClientProviderImpl;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnClass;
@@ -10,6 +11,7 @@ import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
 import org.springframework.boot.context.properties.EnableConfigurationProperties;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
+import org.springframework.context.annotation.DependsOn;
 
 /**
  * 类 MinioAutoConfiguration 功能描述：
@@ -30,15 +32,22 @@ public class MinioAutoConfiguration {
         this.properties = properties;
     }
 
-    @Bean
+    @Bean(name = "minioClientProvider")
     @ConditionalOnMissingBean(MinioClientProvider.class)
     public MinioClientProvider minioClientProvider(){
         return new MinioClientProviderImpl();
     }
 
     @Bean
+    @ConditionalOnMissingBean(ExtendMinioClient.class)
+    @DependsOn("minioClientProvider")
+    public ExtendMinioClient extendMinioClient() {
+        return minioClientProvider().getClient(properties.getEndpoint(), properties.getAccessKey(), properties.getSecretKey());
+    }
+
+    @Bean
     @ConditionalOnMissingBean(MinioService.class)
-    public MinioService minioTemplate(MinioClientProvider minioClientProvider){
-        return new MinioService(properties, minioClientProvider);
+    public MinioService minioService(ExtendMinioClient extendMinioClient){
+        return new MinioService(properties, extendMinioClient);
     }
 }
