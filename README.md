@@ -16,29 +16,29 @@
 ```
 前端调用：
 ```javascript
-            httpRequestHandle(param) {
-                let _this = this;
-                let file = param.file;
-                let data = {
-                    fileName: file.name
-                }
-                getRequest("/oss/policy", data).then(resp => {
-                    let {xamzalgorithm, xamzcredential, policy, xamzsignature, xamzdate, host, key} = resp.data;
-                    let formData = new FormData();
-                    formData.append("key", key);
-                    formData.append("x-amz-algorithm", xamzalgorithm);
-                    formData.append("x-amz-credential", xamzcredential);
-                    formData.append("policy", policy);
-                    formData.append("x-amz-signature", xamzsignature);
-                    formData.append("x-amz-date", xamzdate);
-                    formData.append("file", file);
-                    httpRequest("post", host, formData).then(res => {
-                        if (res.status === 204) {
-                            _this.directUrl = res.headers.location;
-                        }
-                    })
-                })
+httpRequestHandle(param) {
+    let _this = this;
+    let file = param.file;
+    let data = {
+        fileName: file.name
+    }
+    getRequest("/oss/policy", data).then(resp => {
+        let {xamzalgorithm, xamzcredential, policy, xamzsignature, xamzdate, host, key} = resp.data;
+        let formData = new FormData();
+        formData.append("key", key);
+        formData.append("x-amz-algorithm", xamzalgorithm);
+        formData.append("x-amz-credential", xamzcredential);
+        formData.append("policy", policy);
+        formData.append("x-amz-signature", xamzsignature);
+        formData.append("x-amz-date", xamzdate);
+        formData.append("file", file);
+        httpRequest("post", host, formData).then(res => {
+            if (res.status === 204) {
+                _this.directUrl = res.headers.location;
             }
+        })
+    })
+}
 ```
 
 getPolicyUrl() 方法用于获取前端 put 直传的 url 信息，如下：
@@ -53,23 +53,23 @@ getPolicyUrl() 方法用于获取前端 put 直传的 url 信息，如下：
 ```
 前端调用：
 ```javascript
-            urlUploadHandle(param) {
-                let _this = this;
-                let file = param.file;
-                let data = {
-                    fileName: file.name
-                }
-                getRequest("/oss/uploadUrl", data).then(resp => {
-                    let url = resp.data;
-                    // 发送 put 请求
-                    let config = {'Content-Type': file.type}
-                    httpRequest("put", url, file, config).then(res => {
-                        if (res.status == 200) {
-                            _this.uploadUrl = url.substring(0, url.indexOf("?"))
-                        }
-                    })
-                });
+urlUploadHandle(param) {
+    let _this = this;
+    let file = param.file;
+    let data = {
+        fileName: file.name
+    }
+    getRequest("/oss/uploadUrl", data).then(resp => {
+        let url = resp.data;
+        // 发送 put 请求
+        let config = {'Content-Type': file.type}
+        httpRequest("put", url, file, config).then(res => {
+            if (res.status == 200) {
+                _this.uploadUrl = url.substring(0, url.indexOf("?"))
             }
+        })
+    });
+}
 ```
 
 经过测试，getPolicyUrl() 方式传输效率 优于 getPolicy() 方式
