@@ -2,14 +2,13 @@ package com.coctrl.minio.service;
 
 import com.coctrl.minio.configuration.MinioProperties;
 import com.coctrl.minio.constant.MinioConstant;
+import com.coctrl.minio.entity.MultiPartUploadInfo;
 import com.coctrl.minio.service.client.ExtendMinioClient;
+import com.google.common.collect.HashMultimap;
 import io.minio.*;
 import io.minio.errors.*;
 import io.minio.http.Method;
-import io.minio.messages.Bucket;
-import io.minio.messages.DeleteError;
-import io.minio.messages.DeleteObject;
-import io.minio.messages.Item;
+import io.minio.messages.*;
 import org.apache.log4j.Logger;
 import org.springframework.stereotype.Service;
 
@@ -18,6 +17,7 @@ import java.io.InputStream;
 import java.security.InvalidKeyException;
 import java.security.NoSuchAlgorithmException;
 import java.time.LocalDate;
+import java.time.LocalDateTime;
 import java.time.ZonedDateTime;
 import java.util.*;
 import java.util.concurrent.TimeUnit;
@@ -354,7 +354,7 @@ public class MinioService {
      *
      * @param bucketName
      * @param fileName
-     * @param time
+     * @param time       默认10分钟以内有效
      * @return
      * @throws MinioException
      */
@@ -412,7 +412,7 @@ public class MinioService {
      * @throws MinioException
      */
     public String getPolicyUrl(String bucketName, String objectName) throws MinioException {
-        return getPolicyUrl(bucketName, null, objectName, Method.PUT, 2, TimeUnit.MINUTES);
+        return getPolicyUrl(bucketName, null, objectName);
     }
 
     /**
@@ -425,27 +425,43 @@ public class MinioService {
      * @throws MinioException
      */
     public String getPolicyUrl(String bucketName, String path, String objectName) throws MinioException {
-        return getPolicyUrl(bucketName, path, objectName, Method.PUT, 2, TimeUnit.MINUTES);
+        return getPolicyUrl(bucketName, path, objectName, null);
     }
 
     /**
      * 获取上传文件的url
      *
      * @param bucketName
+     * @param path
      * @param objectName
-     * @param method
+     * @param contentType
+     * @return
+     * @throws MinioException
+     */
+    public String getPolicyUrl(String bucketName, String path, String objectName, String contentType) throws MinioException {
+        return getPolicyUrl(bucketName, path, objectName, contentType, 2, TimeUnit.MINUTES);
+    }
+
+    /**
+     * 获取上传文件的url
+     *
+     * @param bucketName
+     * @param path
+     * @param objectName
+     * @param contentType
      * @param time
      * @param timeUnit
      * @return
      * @throws MinioException
      */
-    public String getPolicyUrl(String bucketName, String path, String objectName, Method method, int time, TimeUnit timeUnit) throws MinioException {
+    public String getPolicyUrl(String bucketName, String path, String objectName, String contentType, Integer time, TimeUnit timeUnit) throws MinioException {
         try {
             if (path != null && !"".equals(path)) {
                 objectName = getPath(path) + objectName;
             }
             return minioClient.getPresignedObjectUrl(GetPresignedObjectUrlArgs.builder()
-                    .method(method)
+                    .method(Method.PUT)
+                    .extraHeaders(getHeader(contentType))
                     .bucket(bucketName)
                     .object(objectName)
                     .expiry(time, timeUnit).build());
@@ -454,6 +470,185 @@ public class MinioService {
                 | NoSuchAlgorithmException | XmlParserException | ServerException e) {
             throw new MinioException(e.getMessage());
         }
+    }
+
+    /**
+     * 获得分片上传的地址信息
+     *
+     * @param bucketName
+     * @param objectName
+     * @param partSize
+     * @return
+     * @throws MinioException
+     */
+    public MultiPartUploadInfo initMultiPartUploadId(String bucketName, String objectName, Integer partSize) throws MinioException {
+        return initMultiPartUploadId(bucketName, objectName, partSize, null);
+    }
+
+    /**
+     * 获得分片上传的地址信息
+     *
+     * @param bucketName
+     * @param objectName
+     * @param partSize
+     * @param contentType
+     * @return
+     * @throws MinioException
+     */
+    public MultiPartUploadInfo initMultiPartUploadId(String bucketName, String objectName, Integer partSize, String contentType) throws MinioException {
+        return initMultiPartUploadId(bucketName, objectName, partSize, contentType, 10);
+    }
+
+    /**
+     * 获得分片上传的地址信息
+     *
+     * @param bucketName
+     * @param objectName
+     * @param partSize
+     * @param contentType
+     * @param time
+     * @return
+     * @throws MinioException
+     */
+    public MultiPartUploadInfo initMultiPartUploadId(String bucketName, String objectName, Integer partSize, String contentType, Integer time) throws MinioException {
+        return initMultiPartUploadId(bucketName, objectName, partSize, contentType, time, TimeUnit.MINUTES);
+    }
+
+    /**
+     * 获得分片上传的地址信息
+     *
+     * @param bucketName
+     * @param objectName
+     * @param partSize
+     * @param contentType
+     * @param time
+     * @param timeUnit
+     * @return
+     * @throws MinioException
+     */
+    public MultiPartUploadInfo initMultiPartUploadId(String bucketName, String objectName, Integer partSize, String contentType, Integer time, TimeUnit timeUnit) throws MinioException {
+        String uploadId = "";
+        List<String> partUrlList = new ArrayList<>();
+        try {
+            uploadId = minioClient.getUploadId(bucketName, null, objectName, getHeader(contentType), null);
+            Map<String, String> paramsMap = new HashMap<>(2);
+            paramsMap.put("uploadId", uploadId);
+            for (int i = 0; i < partSize; i++) {
+                paramsMap.put("partNumber", String.valueOf(i));
+                // 获取上传 url
+                String uploadUrl = minioClient.getPresignedObjectUrl(GetPresignedObjectUrlArgs.builder()
+                        // 注意此处指定请求方法为 PUT，前端需对应，否则会报 `SignatureDoesNotMatch` 错误
+                        .method(Method.PUT)
+                        .bucket(bucketName)
+                        .object(objectName)
+                        // 指定上传连接有效期
+                        .expiry(time, timeUnit)
+                        .extraQueryParams(paramsMap).build());
+                partUrlList.add(uploadUrl);
+            }
+        } catch (ErrorResponseException | IOException | InsufficientDataException
+                | InternalException | InvalidKeyException | InvalidResponseException
+                | NoSuchAlgorithmException | XmlParserException | ServerException e) {
+            throw new MinioException(e.getMessage());
+        }
+        LocalDateTime expireTime;
+
+        if (timeUnit.equals(TimeUnit.DAYS)) {
+            expireTime = LocalDateTime.now().plusDays(time);
+        } else if (timeUnit.equals(TimeUnit.HOURS)) {
+            expireTime = LocalDateTime.now().plusHours(time);
+        } else if (timeUnit.equals(TimeUnit.MINUTES)) {
+            expireTime = LocalDateTime.now().plusMinutes(time);
+        } else if (timeUnit.equals(TimeUnit.SECONDS)) {
+            expireTime = LocalDateTime.now().plusSeconds(time);
+        } else {
+            expireTime = LocalDateTime.now().plusMinutes(time);
+        }
+
+        return MultiPartUploadInfo.builder()
+                .uploadId(uploadId)
+                .expiryTime(expireTime)
+                .uploadUrls(partUrlList)
+                .build();
+    }
+
+    /**
+     * 合并分片
+     *
+     * @param bucketName
+     * @param objectName
+     * @param uploadId
+     * @return
+     * @throws MinioException
+     */
+    public String mergeMultiPartUpload(String bucketName, String objectName, String uploadId) throws MinioException {
+        return mergeMultiPartUpload(bucketName, objectName, uploadId, 1000);
+    }
+
+    /**
+     * 合并分片
+     *
+     * @param bucketName
+     * @param objectName
+     * @param uploadId
+     * @return
+     * @throws MinioException
+     */
+    public String mergeMultiPartUpload(String bucketName, String objectName, String uploadId, Integer maxParts) throws MinioException {
+        try {
+            ListPartsResponse partsResponse = minioClient.listParts(bucketName, null, objectName, maxParts, 0, uploadId, null, null);
+            if (null == partsResponse) {
+                throw new MinioException("分片列表为空");
+            }
+            List<Part> partList = partsResponse.result().partList();
+            Part[] parts = new Part[partList.size()];
+            partList.toArray(parts);
+            ObjectWriteResponse writeResponse = minioClient.completeMultipartUpload(bucketName, null, objectName, uploadId, parts, null, null);
+            if (null == writeResponse) {
+                throw new MinioException("分片合并失败");
+            }
+            return writeResponse.region();
+        } catch (ErrorResponseException | IOException | InsufficientDataException
+                | InternalException | InvalidKeyException | InvalidResponseException
+                | NoSuchAlgorithmException | XmlParserException | ServerException e) {
+            throw new MinioException(e.getMessage());
+        }
+    }
+
+    /**
+     * 获取已上传的分片列表
+     *
+     * @param bucketName
+     * @param objectName
+     * @param uploadId
+     * @return
+     * @throws MinioException
+     */
+    public List<Integer> listUploadMultiPart(String bucketName, String objectName, String uploadId) throws MinioException {
+        return listUploadMultiPart(bucketName, objectName, uploadId, 1000);
+    }
+
+    /**
+     * 获取已上传的分片列表
+     *
+     * @param bucketName
+     * @param objectName
+     * @param uploadId
+     * @param maxParts
+     * @return
+     * @throws MinioException
+     */
+    public List<Integer> listUploadMultiPart(String bucketName, String objectName, String uploadId, Integer maxParts) throws MinioException {
+        ListPartsResponse partsResponse;
+        try {
+            partsResponse = minioClient.listParts(bucketName, null, objectName, maxParts, 0, uploadId, null, null);
+        } catch (NoSuchAlgorithmException | IOException | InvalidKeyException e) {
+            throw new MinioException(e.getMessage());
+        }
+        if (null == partsResponse) {
+            return Collections.emptyList();
+        }
+        return partsResponse.result().partList().stream().map(Part::partNumber).collect(Collectors.toList());
     }
 
     /**
@@ -509,5 +704,14 @@ public class MinioService {
         path = path.startsWith(MinioConstant.URI_DELIMITER) ? path.substring(path.indexOf(MinioConstant.URI_DELIMITER) + 1) : path;
         path = path.endsWith(MinioConstant.URI_DELIMITER) ? path : path + MinioConstant.URI_DELIMITER;
         return path;
+    }
+
+    private HashMultimap<String, String> getHeader(String contentType) {
+        if (contentType == null || "".equals(contentType)) {
+            contentType = "application/octet-stream";
+        }
+        HashMultimap<String, String> headers = HashMultimap.create();
+        headers.put("Content-Type", contentType);
+        return headers;
     }
 }

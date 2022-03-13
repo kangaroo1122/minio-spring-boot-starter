@@ -14,8 +14,9 @@
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
         <project.reporting.outputEncoding>UTF-8</project.reporting.outputEncoding>
         <spring-boot.version>2.5.6</spring-boot.version>
-        <minio.version>8.3.5</minio.version>
+        <minio.version>8.3.7</minio.version>
         <slf4j.version>1.7.36</slf4j.version>
+        <lombok.version>1.18.22</lombok.version>
     </properties>
 
     <dependencies>
@@ -43,6 +44,13 @@
             <groupId>org.slf4j</groupId>
             <artifactId>slf4j-api</artifactId>
             <version>${slf4j.version}</version>
+        </dependency>
+        <dependency>
+            <groupId>org.projectlombok</groupId>
+            <artifactId>lombok</artifactId>
+            <optional>true</optional>
+            <version>${lombok.version}</version>
+            <scope>provided</scope>
         </dependency>
     </dependencies>
 </project>

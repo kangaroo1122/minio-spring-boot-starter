@@ -40,45 +40,41 @@ public class ExtendMinioClient extends MinioClient {
      * @throws InvalidResponseException
      * @throws IOException
      */
-    public String getUploadId(String bucketName, String region, String objectName, Multimap<String, String> headers,
-                              Multimap<String, String> extraQueryParams)
-            throws ServerException, InsufficientDataException, ErrorResponseException, NoSuchAlgorithmException, IOException, InvalidKeyException, XmlParserException, InvalidResponseException, InternalException {
-        CreateMultipartUploadResponse response = createMultipartUpload(bucketName, region, objectName, headers,
-                extraQueryParams);
+    public String getUploadId(String bucketName, String region, String objectName,
+                              Multimap<String, String> headers, Multimap<String, String> extraQueryParams)
+            throws ServerException, InsufficientDataException, ErrorResponseException, NoSuchAlgorithmException, IOException,
+            InvalidKeyException, XmlParserException, InvalidResponseException, InternalException {
+        CreateMultipartUploadResponse response = createMultipartUpload(bucketName, region, objectName, headers, extraQueryParams);
         return response.result().uploadId();
     }
 
     /**
      * 上传分片数据
      */
-    public UploadPartResponse uploadPart(String bucketName, String region, String objectName, Object data, int length,
-                                         String uploadId, int partNumber, Multimap<String, String> extraHeaders,
-                                         Multimap<String, String> extraQueryParams)
+    public UploadPartResponse uploadPart(String bucketName, String region, String objectName, Object data, int length, String uploadId,
+                                         int partNumber, Multimap<String, String> extraHeaders, Multimap<String, String> extraQueryParams)
             throws NoSuchAlgorithmException, InsufficientDataException, IOException, InvalidKeyException,
             ServerException, XmlParserException, ErrorResponseException, InternalException, InvalidResponseException {
-        return super.uploadPart(bucketName, region, objectName, data, length, uploadId, partNumber, extraHeaders,
-                extraQueryParams);
+        return super.uploadPart(bucketName, region, objectName, data, length, uploadId, partNumber, extraHeaders, extraQueryParams);
     }
 
     /**
      * 完成分片上传
      */
     @Override
-    public ObjectWriteResponse completeMultipartUpload(String bucketName, String region, String objectName,
-                                                       String uploadId, Part[] parts, Multimap<String, String> extraHeaders,
-                                                       Multimap<String, String> extraQueryParams)
+    public ObjectWriteResponse completeMultipartUpload(String bucketName, String region, String objectName, String uploadId,
+                                                       Part[] parts, Multimap<String, String> extraHeaders, Multimap<String, String> extraQueryParams)
             throws NoSuchAlgorithmException, InsufficientDataException, IOException, InvalidKeyException,
             ServerException, XmlParserException, ErrorResponseException, InternalException, InvalidResponseException {
-        return super.completeMultipartUpload(bucketName, region, objectName, uploadId, parts, extraHeaders,
-                extraQueryParams);
+        return super.completeMultipartUpload(bucketName, region, objectName, uploadId, parts, extraHeaders, extraQueryParams);
     }
 
     /**
      * 取消分片上传
      */
     @Override
-    public AbortMultipartUploadResponse abortMultipartUpload(String bucketName, String region, String objectName,
-                                                             String uploadId, Multimap<String, String> extraHeaders, Multimap<String, String> extraQueryParams)
+    public AbortMultipartUploadResponse abortMultipartUpload(String bucketName, String region, String objectName, String uploadId,
+                                                             Multimap<String, String> extraHeaders, Multimap<String, String> extraQueryParams)
             throws NoSuchAlgorithmException, InsufficientDataException, IOException, InvalidKeyException,
             ServerException, XmlParserException, ErrorResponseException, InternalException, InvalidResponseException {
         return super.abortMultipartUpload(bucketName, region, objectName, uploadId, extraHeaders, extraQueryParams);
