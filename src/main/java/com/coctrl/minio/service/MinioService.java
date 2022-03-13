@@ -425,7 +425,7 @@ public class MinioService {
      * @throws MinioException
      */
     public String getPolicyUrl(String bucketName, String path, String objectName) throws MinioException {
-        return getPolicyUrl(bucketName, path, objectName, null);
+        return getPolicyUrl(bucketName, path, objectName, 5, TimeUnit.MINUTES);
     }
 
     /**
@@ -434,34 +434,18 @@ public class MinioService {
      * @param bucketName
      * @param path
      * @param objectName
-     * @param contentType
-     * @return
-     * @throws MinioException
-     */
-    public String getPolicyUrl(String bucketName, String path, String objectName, String contentType) throws MinioException {
-        return getPolicyUrl(bucketName, path, objectName, contentType, 2, TimeUnit.MINUTES);
-    }
-
-    /**
-     * 获取上传文件的url
-     *
-     * @param bucketName
-     * @param path
-     * @param objectName
-     * @param contentType
      * @param time
      * @param timeUnit
      * @return
      * @throws MinioException
      */
-    public String getPolicyUrl(String bucketName, String path, String objectName, String contentType, Integer time, TimeUnit timeUnit) throws MinioException {
+    public String getPolicyUrl(String bucketName, String path, String objectName, Integer time, TimeUnit timeUnit) throws MinioException {
         try {
             if (path != null && !"".equals(path)) {
                 objectName = getPath(path) + objectName;
             }
             return minioClient.getPresignedObjectUrl(GetPresignedObjectUrlArgs.builder()
                     .method(Method.PUT)
-                    .extraHeaders(getHeader(contentType))
                     .bucket(bucketName)
                     .object(objectName)
                     .expiry(time, timeUnit).build());
