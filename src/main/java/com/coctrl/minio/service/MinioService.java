@@ -194,7 +194,7 @@ public class MinioService {
      * @return
      */
     public InputStream getObject(String bucketName, String objectName, long length, Long offset) throws MinioException {
-        InputStream inputStream = null;
+        InputStream inputStream;
         try {
             inputStream = minioClient.getObject(GetObjectArgs.builder().bucket(bucketName).object(objectName).length(length).offset(offset).build());
         } catch (ErrorResponseException | IOException | InsufficientDataException
@@ -591,7 +591,7 @@ public class MinioService {
             if (null == writeResponse) {
                 throw new MinioException("分片合并失败");
             }
-            return writeResponse.region();
+            return getAddress(writeResponse.region());
         } catch (ErrorResponseException | IOException | InsufficientDataException
                 | InternalException | InvalidKeyException | InvalidResponseException
                 | NoSuchAlgorithmException | XmlParserException | ServerException e) {
@@ -652,7 +652,18 @@ public class MinioService {
      * @return
      */
     public String gatewayUrl(String bucket, String finalPath) {
-        return properties.getEndpoint() + MinioConstant.URI_DELIMITER + bucket + MinioConstant.URI_DELIMITER + finalPath;
+        finalPath = finalPath.startsWith(MinioConstant.URI_DELIMITER) ? finalPath.substring(finalPath.indexOf(MinioConstant.URI_DELIMITER) + 1) : finalPath;
+        return getAddress(properties.getEndpoint() + MinioConstant.URI_DELIMITER + bucket + MinioConstant.URI_DELIMITER + finalPath);
+    }
+
+    /**
+     * 获得文件访问地址
+     *
+     * @return
+     */
+    public String getAddress(String url) {
+        String address = "".equals(properties.getAddress().trim()) ? properties.getEndpoint() : properties.getAddress();
+        return url.replace(properties.getEndpoint(), address);
     }
 
     /**
