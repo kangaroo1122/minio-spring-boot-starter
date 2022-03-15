@@ -694,7 +694,7 @@ public class MinioService {
      */
     private String getPath(String path) {
         if (path == null || "".equals(path)) {
-            return MinioConstant.URI_DELIMITER;
+            return "";
         }
         path = path.startsWith(MinioConstant.URI_DELIMITER) ? path.substring(path.indexOf(MinioConstant.URI_DELIMITER) + 1) : path;
         path = path.endsWith(MinioConstant.URI_DELIMITER) ? path : path + MinioConstant.URI_DELIMITER;
