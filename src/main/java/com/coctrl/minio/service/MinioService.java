@@ -123,10 +123,31 @@ public class MinioService {
     }
 
     /**
-     * 根据前缀获得文件
+     * 遍历指定 bucketName 下文件夹名称
      *
      * @param bucketName bucket名称
-     * @param prefix     前缀
+     * @return
+     */
+    public List<Item> listObjects(String bucketName) throws MinioException {
+        return listObjects(bucketName, false);
+    }
+
+    /**
+     * 遍历文件
+     *
+     * @param bucketName bucket名称
+     * @param recursive  是否递归查询，是，则会返回文件全路径，否，则返回第一级文件夹
+     * @return
+     */
+    public List<Item> listObjects(String bucketName, boolean recursive) throws MinioException {
+        return listObjects(bucketName, null, recursive);
+    }
+
+    /**
+     * 遍历文件
+     *
+     * @param bucketName bucket名称
+     * @param prefix     前缀，包括路径
      * @param recursive  是否递归查询
      * @return
      */
