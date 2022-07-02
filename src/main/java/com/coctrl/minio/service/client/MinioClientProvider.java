@@ -10,7 +10,8 @@ package com.coctrl.minio.service.client;
 public interface MinioClientProvider {
     /**
      * 获取一个MinioClient
-     * @param endpoint 端点
+     *
+     * @param endpoint  端点
      * @param accessKey accessKey
      * @param secretKey secretKey
      * @return MinioClient
