@@ -18,7 +18,7 @@
 ### 2 使用
 
 ```yaml
-coctrl:
+kangaroohy:
   minio:
     endpoint: http://192.168.68.128:9528
     access-key: admin
