@@ -1,4 +1,4 @@
-package com.coctrl.minio.service.client;
+package com.kangaroohy.minio.service.client;
 
 /**
  * 类 MinioClientProvider 功能描述：

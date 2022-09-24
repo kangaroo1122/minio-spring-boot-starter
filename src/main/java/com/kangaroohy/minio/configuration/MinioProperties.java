@@ -1,6 +1,6 @@
-package com.coctrl.minio.configuration;
+package com.kangaroohy.minio.configuration;
 
-import com.coctrl.minio.constant.MinioConstant;
+import com.kangaroohy.minio.constant.MinioConstant;
 import lombok.Data;
 import org.springframework.boot.context.properties.ConfigurationProperties;
 import org.springframework.stereotype.Component;

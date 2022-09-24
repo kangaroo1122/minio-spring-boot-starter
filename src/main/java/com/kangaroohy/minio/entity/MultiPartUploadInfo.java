@@ -1,4 +1,4 @@
-package com.coctrl.minio.entity;
+package com.kangaroohy.minio.entity;
 
 import lombok.AllArgsConstructor;
 import lombok.Builder;

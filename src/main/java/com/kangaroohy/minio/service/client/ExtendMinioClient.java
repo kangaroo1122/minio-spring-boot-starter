@@ -1,4 +1,4 @@
-package com.coctrl.minio.service.client;
+package com.kangaroohy.minio.service.client;
 
 import com.google.common.collect.Multimap;
 import io.minio.*;

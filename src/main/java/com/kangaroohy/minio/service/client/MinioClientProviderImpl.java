@@ -1,4 +1,4 @@
-package com.coctrl.minio.service.client;
+package com.kangaroohy.minio.service.client;
 
 import io.minio.MinioClient;
 import org.springframework.stereotype.Service;

@@ -1,9 +1,9 @@
-package com.coctrl.minio.service;
+package com.kangaroohy.minio.service;
 
-import com.coctrl.minio.configuration.MinioProperties;
-import com.coctrl.minio.constant.MinioConstant;
-import com.coctrl.minio.entity.MultiPartUploadInfo;
-import com.coctrl.minio.service.client.ExtendMinioClient;
+import com.kangaroohy.minio.configuration.MinioProperties;
+import com.kangaroohy.minio.constant.MinioConstant;
+import com.kangaroohy.minio.entity.MultiPartUploadInfo;
+import com.kangaroohy.minio.service.client.ExtendMinioClient;
 import com.google.common.collect.HashMultimap;
 import io.minio.*;
 import io.minio.errors.*;
@@ -34,7 +34,7 @@ import java.util.stream.Collectors;
 public class MinioService {
     public static final Logger logger = Logger.getLogger(MinioService.class);
 
-    private final MinioProperties properties;
+    private final com.kangaroohy.minio.configuration.MinioProperties properties;
 
     private final ExtendMinioClient minioClient;
 

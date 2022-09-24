@@ -1,10 +1,10 @@
-package com.coctrl.minio.configuration;
+package com.kangaroohy.minio.configuration;
 
-import com.coctrl.minio.constant.MinioConstant;
-import com.coctrl.minio.service.MinioService;
-import com.coctrl.minio.service.client.ExtendMinioClient;
-import com.coctrl.minio.service.client.MinioClientProvider;
-import com.coctrl.minio.service.client.MinioClientProviderImpl;
+import com.kangaroohy.minio.constant.MinioConstant;
+import com.kangaroohy.minio.service.MinioService;
+import com.kangaroohy.minio.service.client.ExtendMinioClient;
+import com.kangaroohy.minio.service.client.MinioClientProvider;
+import com.kangaroohy.minio.service.client.MinioClientProviderImpl;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnClass;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnMissingBean;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;

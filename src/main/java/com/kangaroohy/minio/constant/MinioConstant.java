@@ -1,4 +1,4 @@
-package com.coctrl.minio.constant;
+package com.kangaroohy.minio.constant;
 
 /**
  * 类 MinioConstant 功能描述：
@@ -14,7 +14,7 @@ public class MinioConstant {
     /**
      * 配置前缀
      */
-    public static final String PREFIX = "coctrl.minio";
+    public static final String PREFIX = "kangaroohy.minio";
 
     /**
      * url分隔符
