@@ -1,9 +1,31 @@
-## minio-starter
+## minio-spring-boot-starter
+
+### maven
+
+[![Maven Central](https://img.shields.io/maven-central/v/com.kangaroohy/minio-spring-boot-starter.svg)](https://search.maven.org/#search%7Cgav%7C1%7Cg%3A%22com.kangaroohy%22%20AND%20a%3A%minio-spring-boot-starter%22)
+
+~~~xml
+<dependency>
+  <groupId>com.kangaroohy</groupId>
+  <artifactId>minio-spring-boot-starter</artifactId>
+  <version>1.0.0</version>
+</dependency>
+~~~
 
 ### 1 封装方法
 ![method.png](method.png)
 
 ### 2 使用
+
+```yaml
+coctrl:
+  minio:
+    endpoint: http://192.168.68.128:9528
+    access-key: admin
+    secret-key: admin123
+```
+配置完成，调用封装好的方法即可
+
 其中，getPolicy() 方法用于获取前端 post formData 直传的相关凭证信息，如下：
 
 后端接口：
