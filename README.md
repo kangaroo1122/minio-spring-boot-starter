@@ -31,7 +31,7 @@ kangaroohy:
 后端接口：
 ```java
     @GetMapping("/oss/policy")
-    public ResponseEntity<RestResult<Map<String, String>>> policy(@RequestParam String fileName) throws MinioException {
+    public RestResult<Map<String, String>> policy(@RequestParam String fileName) throws MinioException {
         Map<String, String> policy = minioService.getPolicy(bucketName, fileName);
         return RestResult.ok(policy);
     }
@@ -68,7 +68,7 @@ getPolicyUrl() 方法用于获取前端 put 直传的 url 信息，如下：
 后端接口：
 ```java
     @GetMapping("/oss/uploadUrl")
-    public ResponseEntity<RestResult<String>> uploadUrl(@RequestParam String fileName) throws MinioException {
+    public RestResult<String> uploadUrl(@RequestParam String fileName) throws MinioException {
         String url = minioService.getPolicyUrl(bucketName, fileName);
         return RestResult.ok(url);
     }
