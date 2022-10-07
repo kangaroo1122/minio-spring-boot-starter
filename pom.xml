@@ -5,7 +5,7 @@
     <modelVersion>4.0.0</modelVersion>
     <groupId>com.kangaroohy</groupId>
     <artifactId>minio-spring-boot-starter</artifactId>
-    <version>1.0.0</version>
+    <version>1.0.1</version>
     <name>minio-spring-boot-starter</name>
     <description>minio对象存储spring boot starter封装组件</description>
     <url>https://github.com/kangaroo1122/minio-spring-boot-starter</url>
@@ -17,7 +17,7 @@
         <spring-boot.version>2.5.6</spring-boot.version>
         <minio.version>8.3.7</minio.version>
         <slf4j.version>1.7.36</slf4j.version>
-        <lombok.version>1.18.22</lombok.version>
+        <lombok.version>1.18.24</lombok.version>
     </properties>
 
     <organization>

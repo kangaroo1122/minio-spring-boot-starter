@@ -3,6 +3,7 @@ package com.kangaroohy.minio.service;
 import com.kangaroohy.minio.configuration.MinioProperties;
 import com.kangaroohy.minio.constant.MinioConstant;
 import com.kangaroohy.minio.entity.MultiPartUploadInfo;
+import com.kangaroohy.minio.enums.PolicyType;
 import com.kangaroohy.minio.service.client.ExtendMinioClient;
 import com.google.common.collect.HashMultimap;
 import io.minio.*;
@@ -53,8 +54,8 @@ public class MinioService {
         try {
             return minioClient.bucketExists(BucketExistsArgs.builder().bucket(bucketName).build());
         } catch (ErrorResponseException | IOException | InsufficientDataException
-                | InternalException | InvalidKeyException | InvalidResponseException
-                | NoSuchAlgorithmException | XmlParserException | ServerException e) {
+                 | InternalException | InvalidKeyException | InvalidResponseException
+                 | NoSuchAlgorithmException | XmlParserException | ServerException e) {
             throw new MinioException(e.getMessage());
         }
     }
@@ -72,8 +73,90 @@ public class MinioService {
             }
             return true;
         } catch (ErrorResponseException | IOException | InsufficientDataException
-                | InternalException | InvalidKeyException | InvalidResponseException
-                | NoSuchAlgorithmException | XmlParserException | ServerException e) {
+                 | InternalException | InvalidKeyException | InvalidResponseException
+                 | NoSuchAlgorithmException | XmlParserException | ServerException e) {
+            throw new MinioException(e.getMessage());
+        }
+    }
+
+    /**
+     * 创建一个bucket，并指定访问策略
+     *
+     * @param bucketName bucket名称
+     * @param policyType 访问策略
+     * @return
+     */
+    public boolean createBucket(String bucketName, PolicyType policyType) throws MinioException {
+        try {
+            if (this.createBucket(bucketName)) {
+                minioClient.setBucketPolicy(SetBucketPolicyArgs.builder().bucket(bucketName).config(PolicyType.getPolicy(policyType, bucketName)).build());
+            }
+            return true;
+        } catch (ErrorResponseException | IOException | InsufficientDataException
+                 | InternalException | InvalidKeyException | InvalidResponseException
+                 | NoSuchAlgorithmException | XmlParserException | ServerException e) {
+            throw new MinioException(e.getMessage());
+        }
+    }
+
+    /**
+     * 创建一个bucket，并指定访问策略，默认三种不满足时，自定义可调用此方法
+     *
+     * @param bucketName bucket名称
+     * @param policy 访问策略
+     * @return
+     */
+    public boolean createBucket(String bucketName, String policy) throws MinioException {
+        try {
+            if (this.createBucket(bucketName)) {
+                minioClient.setBucketPolicy(SetBucketPolicyArgs.builder().bucket(bucketName).config(policy).build());
+            }
+            return true;
+        } catch (ErrorResponseException | IOException | InsufficientDataException
+                 | InternalException | InvalidKeyException | InvalidResponseException
+                 | NoSuchAlgorithmException | XmlParserException | ServerException e) {
+            throw new MinioException(e.getMessage());
+        }
+    }
+
+    /**
+     * 指定访问策略
+     *
+     * @param bucketName bucket名称
+     * @param policyType 访问策略
+     * @return
+     */
+    public boolean setBucketPolicy(String bucketName, PolicyType policyType) throws MinioException {
+        try {
+            if (!bucketExists(bucketName)) {
+                throw new MinioException(bucketName + " bucket does not exist.");
+            }
+            minioClient.setBucketPolicy(SetBucketPolicyArgs.builder().bucket(bucketName).config(PolicyType.getPolicy(policyType, bucketName)).build());
+            return true;
+        } catch (ErrorResponseException | IOException | InsufficientDataException
+                 | InternalException | InvalidKeyException | InvalidResponseException
+                 | NoSuchAlgorithmException | XmlParserException | ServerException e) {
+            throw new MinioException(e.getMessage());
+        }
+    }
+
+    /**
+     * 指定访问策略，默认三种不满足时，自定义可调用此方法
+     *
+     * @param bucketName bucket名称
+     * @param policy 访问策略
+     * @return
+     */
+    public boolean setBucketPolicy(String bucketName, String policy) throws MinioException {
+        try {
+            if (!bucketExists(bucketName)) {
+                throw new MinioException(bucketName + " bucket does not exist.");
+            }
+            minioClient.setBucketPolicy(SetBucketPolicyArgs.builder().bucket(bucketName).config(policy).build());
+            return true;
+        } catch (ErrorResponseException | IOException | InsufficientDataException
+                 | InternalException | InvalidKeyException | InvalidResponseException
+                 | NoSuchAlgorithmException | XmlParserException | ServerException e) {
             throw new MinioException(e.getMessage());
         }
     }
@@ -87,8 +170,8 @@ public class MinioService {
         try {
             return minioClient.listBuckets();
         } catch (ErrorResponseException | IOException | InsufficientDataException
-                | InternalException | InvalidKeyException | InvalidResponseException
-                | NoSuchAlgorithmException | XmlParserException | ServerException e) {
+                 | InternalException | InvalidKeyException | InvalidResponseException
+                 | NoSuchAlgorithmException | XmlParserException | ServerException e) {
             throw new MinioException(e.getMessage());
         }
     }
@@ -116,8 +199,8 @@ public class MinioService {
             }
             return true;
         } catch (ErrorResponseException | IOException | InsufficientDataException
-                | InternalException | InvalidKeyException | InvalidResponseException
-                | NoSuchAlgorithmException | XmlParserException | ServerException e) {
+                 | InternalException | InvalidKeyException | InvalidResponseException
+                 | NoSuchAlgorithmException | XmlParserException | ServerException e) {
             throw new MinioException(e.getMessage());
         }
     }
@@ -158,8 +241,8 @@ public class MinioService {
             try {
                 objectList.add(itemResult.get());
             } catch (ErrorResponseException | IOException | InsufficientDataException
-                    | InternalException | InvalidKeyException | InvalidResponseException
-                    | NoSuchAlgorithmException | XmlParserException | ServerException e) {
+                     | InternalException | InvalidKeyException | InvalidResponseException
+                     | NoSuchAlgorithmException | XmlParserException | ServerException e) {
                 throw new MinioException(e.getMessage());
             }
         }
@@ -178,8 +261,8 @@ public class MinioService {
         try {
             inputStream = minioClient.getObject(GetObjectArgs.builder().bucket(bucketName).object(objectName).build());
         } catch (ErrorResponseException | IOException | InsufficientDataException
-                | InternalException | InvalidKeyException | InvalidResponseException
-                | NoSuchAlgorithmException | XmlParserException | ServerException e) {
+                 | InternalException | InvalidKeyException | InvalidResponseException
+                 | NoSuchAlgorithmException | XmlParserException | ServerException e) {
             throw new MinioException(e.getMessage());
         }
         return inputStream;
@@ -198,8 +281,8 @@ public class MinioService {
         try {
             inputStream = minioClient.getObject(GetObjectArgs.builder().bucket(bucketName).object(objectName).versionId(versionId).build());
         } catch (ErrorResponseException | IOException | InsufficientDataException
-                | InternalException | InvalidKeyException | InvalidResponseException
-                | NoSuchAlgorithmException | XmlParserException | ServerException e) {
+                 | InternalException | InvalidKeyException | InvalidResponseException
+                 | NoSuchAlgorithmException | XmlParserException | ServerException e) {
             throw new MinioException(e.getMessage());
         }
         return inputStream;
@@ -219,8 +302,8 @@ public class MinioService {
         try {
             inputStream = minioClient.getObject(GetObjectArgs.builder().bucket(bucketName).object(objectName).length(length).offset(offset).build());
         } catch (ErrorResponseException | IOException | InsufficientDataException
-                | InternalException | InvalidKeyException | InvalidResponseException
-                | NoSuchAlgorithmException | XmlParserException | ServerException e) {
+                 | InternalException | InvalidKeyException | InvalidResponseException
+                 | NoSuchAlgorithmException | XmlParserException | ServerException e) {
             throw new MinioException(e.getMessage());
         }
         return inputStream;
@@ -249,8 +332,8 @@ public class MinioService {
         try {
             return minioClient.getPresignedObjectUrl(GetPresignedObjectUrlArgs.builder().bucket(bucketName).object(objectName).expiry(expires).method(Method.GET).build());
         } catch (ErrorResponseException | IOException | InsufficientDataException
-                | InternalException | InvalidKeyException | InvalidResponseException
-                | NoSuchAlgorithmException | XmlParserException | ServerException e) {
+                 | InternalException | InvalidKeyException | InvalidResponseException
+                 | NoSuchAlgorithmException | XmlParserException | ServerException e) {
             throw new MinioException(e.getMessage());
         }
     }
@@ -309,8 +392,8 @@ public class MinioService {
                     .contentType(contentType)
                     .build());
         } catch (ErrorResponseException | IOException | InsufficientDataException
-                | InternalException | InvalidKeyException | InvalidResponseException
-                | NoSuchAlgorithmException | XmlParserException | ServerException e) {
+                 | InternalException | InvalidKeyException | InvalidResponseException
+                 | NoSuchAlgorithmException | XmlParserException | ServerException e) {
             throw new MinioException(e.getMessage());
         }
     }
@@ -327,8 +410,8 @@ public class MinioService {
             minioClient.removeObject(RemoveObjectArgs.builder().bucket(bucketName).object(objectName).build());
             return true;
         } catch (ErrorResponseException | IOException | InsufficientDataException
-                | InternalException | InvalidKeyException | InvalidResponseException
-                | NoSuchAlgorithmException | XmlParserException | ServerException e) {
+                 | InternalException | InvalidKeyException | InvalidResponseException
+                 | NoSuchAlgorithmException | XmlParserException | ServerException e) {
             throw new MinioException(e.getMessage());
         }
     }
@@ -351,8 +434,8 @@ public class MinioService {
                         bucketName, result.get().objectName(), result.get().code(), result.get().message()));
             }
         } catch (ErrorResponseException | IOException | InsufficientDataException
-                | InternalException | InvalidKeyException | InvalidResponseException
-                | NoSuchAlgorithmException | XmlParserException | ServerException e) {
+                 | InternalException | InvalidKeyException | InvalidResponseException
+                 | NoSuchAlgorithmException | XmlParserException | ServerException e) {
             throw new MinioException(e.getMessage());
         }
         return errorDeleteObjects;
@@ -418,8 +501,8 @@ public class MinioService {
             map1.put("host", properties.getEndpoint() + MinioConstant.URI_DELIMITER + bucketName);
             return map1;
         } catch (ErrorResponseException | IOException | InsufficientDataException
-                | InternalException | InvalidKeyException | InvalidResponseException
-                | NoSuchAlgorithmException | XmlParserException | ServerException e) {
+                 | InternalException | InvalidKeyException | InvalidResponseException
+                 | NoSuchAlgorithmException | XmlParserException | ServerException e) {
             throw new MinioException(e.getMessage());
         }
     }
@@ -471,8 +554,8 @@ public class MinioService {
                     .object(objectName)
                     .expiry(time, timeUnit).build());
         } catch (ErrorResponseException | IOException | InsufficientDataException
-                | InternalException | InvalidKeyException | InvalidResponseException
-                | NoSuchAlgorithmException | XmlParserException | ServerException e) {
+                 | InternalException | InvalidKeyException | InvalidResponseException
+                 | NoSuchAlgorithmException | XmlParserException | ServerException e) {
             throw new MinioException(e.getMessage());
         }
     }
@@ -552,8 +635,8 @@ public class MinioService {
                 partUrlList.add(uploadUrl);
             }
         } catch (ErrorResponseException | IOException | InsufficientDataException
-                | InternalException | InvalidKeyException | InvalidResponseException
-                | NoSuchAlgorithmException | XmlParserException | ServerException e) {
+                 | InternalException | InvalidKeyException | InvalidResponseException
+                 | NoSuchAlgorithmException | XmlParserException | ServerException e) {
             throw new MinioException(e.getMessage());
         }
         LocalDateTime expireTime;
@@ -614,8 +697,8 @@ public class MinioService {
             }
             return getAddress(writeResponse.region());
         } catch (ErrorResponseException | IOException | InsufficientDataException
-                | InternalException | InvalidKeyException | InvalidResponseException
-                | NoSuchAlgorithmException | XmlParserException | ServerException e) {
+                 | InternalException | InvalidKeyException | InvalidResponseException
+                 | NoSuchAlgorithmException | XmlParserException | ServerException e) {
             throw new MinioException(e.getMessage());
         }
     }
