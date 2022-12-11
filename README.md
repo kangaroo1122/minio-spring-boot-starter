@@ -100,9 +100,9 @@ urlUploadHandle(param) {
 
 其余方法，按需调用
 
-如果封装的方法不满足需求，可以注入 `ExtendMinioClient extendMinioClient` 调用 minioClient 提供的原始方法进行操作
+如果封装的方法不满足需求，可以注入 `MinioClient minioClient` 调用 minioClient 提供的原始方法进行操作
 
 ```java
     @Autowired
-    private ExtendMinioClient minioClient;
+    private MinioClient minioClient;
 ```

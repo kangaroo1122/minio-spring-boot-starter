@@ -1,11 +1,11 @@
 package com.kangaroohy.minio.service;
 
+import com.google.common.collect.HashMultimap;
 import com.kangaroohy.minio.configuration.MinioProperties;
 import com.kangaroohy.minio.constant.MinioConstant;
 import com.kangaroohy.minio.entity.MultiPartUploadInfo;
 import com.kangaroohy.minio.enums.PolicyType;
-import com.kangaroohy.minio.service.client.ExtendMinioClient;
-import com.google.common.collect.HashMultimap;
+import com.kangaroohy.minio.service.client.ExtendMinioAsyncClient;
 import io.minio.*;
 import io.minio.errors.*;
 import io.minio.http.Method;
@@ -35,12 +35,15 @@ import java.util.stream.Collectors;
 public class MinioService {
     public static final Logger logger = Logger.getLogger(MinioService.class);
 
-    private final com.kangaroohy.minio.configuration.MinioProperties properties;
+    private final MinioProperties properties;
 
-    private final ExtendMinioClient minioClient;
+    private final ExtendMinioAsyncClient minioAsyncClient;
 
-    public MinioService(MinioProperties properties, ExtendMinioClient minioClient) {
+    private final MinioClient minioClient;
+
+    public MinioService(MinioProperties properties, ExtendMinioAsyncClient minioAsyncClient, MinioClient minioClient) {
         this.properties = properties;
+        this.minioAsyncClient = minioAsyncClient;
         this.minioClient = minioClient;
     }
 
@@ -618,7 +621,7 @@ public class MinioService {
         String uploadId = "";
         List<String> partUrlList = new ArrayList<>();
         try {
-            uploadId = minioClient.getUploadId(bucketName, null, objectName, getHeader(contentType), null);
+            uploadId = minioAsyncClient.getUploadId(bucketName, null, objectName, getHeader(contentType), null);
             Map<String, String> paramsMap = new HashMap<>(2);
             paramsMap.put("uploadId", uploadId);
             for (int i = 0; i < partSize; i++) {
@@ -684,14 +687,14 @@ public class MinioService {
      */
     public String mergeMultiPartUpload(String bucketName, String objectName, String uploadId, Integer maxParts) throws MinioException {
         try {
-            ListPartsResponse partsResponse = minioClient.listParts(bucketName, null, objectName, maxParts, 0, uploadId, null, null);
+            ListPartsResponse partsResponse = minioAsyncClient.listParts(bucketName, null, objectName, maxParts, 0, uploadId, null, null);
             if (null == partsResponse) {
                 throw new MinioException("分片列表为空");
             }
             List<Part> partList = partsResponse.result().partList();
             Part[] parts = new Part[partList.size()];
             partList.toArray(parts);
-            ObjectWriteResponse writeResponse = minioClient.completeMultipartUpload(bucketName, null, objectName, uploadId, parts, null, null);
+            ObjectWriteResponse writeResponse = minioAsyncClient.completeMultipartUpload(bucketName, null, objectName, uploadId, parts, null, null);
             if (null == writeResponse) {
                 throw new MinioException("分片合并失败");
             }
@@ -729,7 +732,7 @@ public class MinioService {
     public List<Integer> listUploadMultiPart(String bucketName, String objectName, String uploadId, Integer maxParts) throws MinioException {
         ListPartsResponse partsResponse;
         try {
-            partsResponse = minioClient.listParts(bucketName, null, objectName, maxParts, 0, uploadId, null, null);
+            partsResponse = minioAsyncClient.listParts(bucketName, null, objectName, maxParts, 0, uploadId, null, null);
         } catch (NoSuchAlgorithmException | IOException | InvalidKeyException e) {
             throw new MinioException(e.getMessage());
         }

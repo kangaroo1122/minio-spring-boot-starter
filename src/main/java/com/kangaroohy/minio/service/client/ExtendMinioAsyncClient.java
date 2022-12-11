@@ -16,8 +16,8 @@ import java.security.NoSuchAlgorithmException;
  * @version 0.0.1
  * @date 2021/12/01 17:20
  */
-public class ExtendMinioClient extends MinioClient {
-    protected ExtendMinioClient(MinioClient client) {
+public class ExtendMinioAsyncClient extends MinioAsyncClient {
+    protected ExtendMinioAsyncClient(MinioAsyncClient client) {
         super(client);
     }
 

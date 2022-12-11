@@ -1,5 +1,6 @@
 package com.kangaroohy.minio.service.client;
 
+import io.minio.MinioAsyncClient;
 import io.minio.MinioClient;
 import org.springframework.stereotype.Service;
 
@@ -13,15 +14,30 @@ import org.springframework.stereotype.Service;
 @Service
 public class MinioClientProviderImpl implements MinioClientProvider {
 
-    private volatile ExtendMinioClient minioClient;
+    private volatile ExtendMinioAsyncClient minioAsyncClient;
+
+    private volatile MinioClient minioClient;
 
     @Override
-    public ExtendMinioClient getClient(String endpoint, String accessKey, String secretKey) {
+    public ExtendMinioAsyncClient getAsyncClient(String endpoint, String accessKey, String secretKey) {
+        // 通过double check来创建单例的Client
+        if (minioAsyncClient == null) {
+            synchronized (MinioClientProviderImpl.class) {
+                if (minioAsyncClient == null) {
+                    minioAsyncClient = new ExtendMinioAsyncClient(MinioAsyncClient.builder().endpoint(endpoint).credentials(accessKey, secretKey).build());
+                }
+            }
+        }
+        return minioAsyncClient;
+    }
+
+    @Override
+    public MinioClient getClient(String endpoint, String accessKey, String secretKey) {
         // 通过double check来创建单例的Client
         if (minioClient == null) {
             synchronized (MinioClientProviderImpl.class) {
                 if (minioClient == null) {
-                    minioClient = new ExtendMinioClient(MinioClient.builder().endpoint(endpoint).credentials(accessKey, secretKey).build());
+                    minioClient = MinioClient.builder().endpoint(endpoint).credentials(accessKey, secretKey).build();
                 }
             }
         }

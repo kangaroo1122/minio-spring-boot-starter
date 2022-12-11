@@ -2,9 +2,10 @@ package com.kangaroohy.minio.configuration;
 
 import com.kangaroohy.minio.constant.MinioConstant;
 import com.kangaroohy.minio.service.MinioService;
-import com.kangaroohy.minio.service.client.ExtendMinioClient;
+import com.kangaroohy.minio.service.client.ExtendMinioAsyncClient;
 import com.kangaroohy.minio.service.client.MinioClientProvider;
 import com.kangaroohy.minio.service.client.MinioClientProviderImpl;
+import io.minio.MinioClient;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnClass;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnMissingBean;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
@@ -39,15 +40,22 @@ public class MinioAutoConfiguration {
     }
 
     @Bean
-    @ConditionalOnMissingBean(ExtendMinioClient.class)
+    @ConditionalOnMissingBean(ExtendMinioAsyncClient.class)
     @DependsOn("minioClientProvider")
-    public ExtendMinioClient extendMinioClient() {
+    public ExtendMinioAsyncClient extendMinioClient() {
+        return minioClientProvider().getAsyncClient(properties.getEndpoint(), properties.getAccessKey(), properties.getSecretKey());
+    }
+
+    @Bean
+    @ConditionalOnMissingBean(MinioClient.class)
+    @DependsOn("minioClientProvider")
+    public MinioClient minioClient() {
         return minioClientProvider().getClient(properties.getEndpoint(), properties.getAccessKey(), properties.getSecretKey());
     }
 
     @Bean
     @ConditionalOnMissingBean(MinioService.class)
-    public MinioService minioService(ExtendMinioClient extendMinioClient) {
-        return new MinioService(properties, extendMinioClient);
+    public MinioService minioService(ExtendMinioAsyncClient extendMinioAsyncClient, MinioClient minioClient) {
+        return new MinioService(properties, extendMinioAsyncClient, minioClient);
     }
 }

@@ -1,5 +1,7 @@
 package com.kangaroohy.minio.service.client;
 
+import io.minio.MinioClient;
+
 /**
  * 类 MinioClientProvider 功能描述：
  *
@@ -9,6 +11,16 @@ package com.kangaroohy.minio.service.client;
  */
 public interface MinioClientProvider {
     /**
+     * 获取一个MinioAsyncClient
+     *
+     * @param endpoint  端点
+     * @param accessKey accessKey
+     * @param secretKey secretKey
+     * @return MinioClient
+     */
+    ExtendMinioAsyncClient getAsyncClient(String endpoint, String accessKey, String secretKey);
+
+    /**
      * 获取一个MinioClient
      *
      * @param endpoint  端点
@@ -16,5 +28,5 @@ public interface MinioClientProvider {
      * @param secretKey secretKey
      * @return MinioClient
      */
-    ExtendMinioClient getClient(String endpoint, String accessKey, String secretKey);
+    MinioClient getClient(String endpoint, String accessKey, String secretKey);
 }
