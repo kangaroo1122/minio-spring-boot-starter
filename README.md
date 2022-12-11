@@ -4,11 +4,15 @@
 
 [![Maven Central](https://img.shields.io/maven-central/v/com.kangaroohy/minio-spring-boot-starter.svg)](https://search.maven.org/#search%7Cgav%7C1%7Cg%3A%22com.kangaroohy%22%20AND%20a%3A%minio-spring-boot-starter%22)
 
+1.0.2 版本 对应 spring boot 2.x JDK version 1.8+
+
+3.0.0 版本 对应 spring boot 3.x JDK version 17+
+
 ~~~xml
 <dependency>
   <groupId>com.kangaroohy</groupId>
   <artifactId>minio-spring-boot-starter</artifactId>
-  <version>1.0.0</version>
+  <version>1.0.2</version>
 </dependency>
 ~~~
 
@@ -26,7 +30,9 @@ kangaroohy:
 ```
 配置完成，调用封装好的方法即可
 
-其中，getPolicy() 方法用于获取前端 post formData 直传的相关凭证信息，如下：
+#### 2.1 前端直传
+
+其中，getPolicy() 方法用于获取前端 **POST FormData** 直传的相关凭证信息，如下：
 
 后端接口：
 ```java
@@ -63,7 +69,7 @@ httpRequestHandle(param) {
 }
 ```
 
-getPolicyUrl() 方法用于获取前端 put 直传的 url 信息，如下：
+getPolicyUrl() 方法用于获取前端 **PUT** 直传的 url 信息，如下：
 
 后端接口：
 ```java
@@ -106,3 +112,7 @@ urlUploadHandle(param) {
     @Autowired
     private MinioClient minioClient;
 ```
+
+#### 2.2 分片上传
+
+使用参考：[minio分片上传文件实现](https://blog.csdn.net/Vampire_1122/article/details/128278615)
