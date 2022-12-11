@@ -21,6 +21,7 @@ import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.time.ZonedDateTime;
 import java.util.*;
+import java.util.concurrent.ExecutionException;
 import java.util.concurrent.TimeUnit;
 import java.util.stream.Collectors;
 
@@ -564,6 +565,72 @@ public class MinioService {
     }
 
     /**
+     * 单文件上传
+     *
+     * @param bucketName
+     * @param objectName
+     * @return
+     * @throws MinioException
+     */
+    public String getUploadObjectUrl(String bucketName, String objectName) throws MinioException {
+        return getUploadObjectUrl(bucketName, null, objectName);
+    }
+
+    /**
+     * 单文件上传
+     *
+     * @param bucketName
+     * @param path
+     * @param objectName
+     * @return
+     * @throws MinioException
+     */
+    public String getUploadObjectUrl(String bucketName, String path, String objectName) throws MinioException {
+        return getUploadObjectUrl(bucketName, path, objectName, 10);
+    }
+
+    /**
+     * 单文件上传
+     *
+     * @param bucketName
+     * @param path
+     * @param objectName
+     * @param time
+     * @return
+     * @throws MinioException
+     */
+    public String getUploadObjectUrl(String bucketName, String path, String objectName, Integer time) throws MinioException {
+        return getUploadObjectUrl(bucketName, path, objectName, time, TimeUnit.MINUTES);
+    }
+
+    /**
+     * 单文件上传
+     *
+     * @param bucketName
+     * @param path
+     * @param objectName
+     * @param time
+     * @param timeUnit
+     * @return
+     * @throws MinioException
+     */
+    public String getUploadObjectUrl(String bucketName, String path, String objectName, Integer time, TimeUnit timeUnit) throws MinioException {
+        try {
+            if (path != null && !"".equals(path)) {
+                objectName = getPath(path) + objectName;
+            }
+            return minioClient.getPresignedObjectUrl(GetPresignedObjectUrlArgs.builder()
+                    .method(Method.PUT)
+                    .bucket(bucketName)
+                    .object(objectName)
+                    .expiry(time, timeUnit)
+                    .build());
+        } catch (InvalidKeyException | IOException | NoSuchAlgorithmException e) {
+            throw new MinioException(e.getMessage());
+        }
+    }
+
+    /**
      * 获得分片上传的地址信息
      *
      * @param bucketName
@@ -573,7 +640,7 @@ public class MinioService {
      * @throws MinioException
      */
     public MultiPartUploadInfo initMultiPartUploadId(String bucketName, String objectName, Integer partSize) throws MinioException {
-        return initMultiPartUploadId(bucketName, objectName, partSize, null);
+        return initMultiPartUploadId(bucketName, null, objectName, partSize);
     }
 
     /**
@@ -587,13 +654,43 @@ public class MinioService {
      * @throws MinioException
      */
     public MultiPartUploadInfo initMultiPartUploadId(String bucketName, String objectName, Integer partSize, String contentType) throws MinioException {
-        return initMultiPartUploadId(bucketName, objectName, partSize, contentType, 10);
+        return initMultiPartUploadId(bucketName, null, objectName, partSize, contentType);
     }
 
     /**
      * 获得分片上传的地址信息
      *
      * @param bucketName
+     * @param path
+     * @param objectName
+     * @param partSize
+     * @return
+     * @throws MinioException
+     */
+    public MultiPartUploadInfo initMultiPartUploadId(String bucketName, String path, String objectName, Integer partSize) throws MinioException {
+        return initMultiPartUploadId(bucketName, path, objectName, partSize, null);
+    }
+
+    /**
+     * 获得分片上传的地址信息
+     *
+     * @param bucketName
+     * @param path
+     * @param objectName
+     * @param partSize
+     * @param contentType
+     * @return
+     * @throws MinioException
+     */
+    public MultiPartUploadInfo initMultiPartUploadId(String bucketName, String path, String objectName, Integer partSize, String contentType) throws MinioException {
+        return initMultiPartUploadId(bucketName, path, objectName, partSize, contentType, 10);
+    }
+
+    /**
+     * 获得分片上传的地址信息
+     *
+     * @param bucketName
+     * @param path
      * @param objectName
      * @param partSize
      * @param contentType
@@ -601,14 +698,15 @@ public class MinioService {
      * @return
      * @throws MinioException
      */
-    public MultiPartUploadInfo initMultiPartUploadId(String bucketName, String objectName, Integer partSize, String contentType, Integer time) throws MinioException {
-        return initMultiPartUploadId(bucketName, objectName, partSize, contentType, time, TimeUnit.MINUTES);
+    public MultiPartUploadInfo initMultiPartUploadId(String bucketName, String path, String objectName, Integer partSize, String contentType, Integer time) throws MinioException {
+        return initMultiPartUploadId(bucketName, path, objectName, partSize, contentType, time, TimeUnit.MINUTES);
     }
 
     /**
      * 获得分片上传的地址信息
      *
      * @param bucketName
+     * @param path
      * @param objectName
      * @param partSize
      * @param contentType
@@ -617,17 +715,20 @@ public class MinioService {
      * @return
      * @throws MinioException
      */
-    public MultiPartUploadInfo initMultiPartUploadId(String bucketName, String objectName, Integer partSize, String contentType, Integer time, TimeUnit timeUnit) throws MinioException {
+    public MultiPartUploadInfo initMultiPartUploadId(String bucketName, String path, String objectName, Integer partSize, String contentType, Integer time, TimeUnit timeUnit) throws MinioException {
         String uploadId = "";
         List<String> partUrlList = new ArrayList<>();
         try {
-            uploadId = minioAsyncClient.getUploadId(bucketName, null, objectName, getHeader(contentType), null);
+            if (path != null && !"".equals(path)) {
+                objectName = getPath(path) + objectName;
+            }
+            uploadId = minioAsyncClient.initMultiPartUpload(bucketName, null, objectName, getHeader(contentType), null);
             Map<String, String> paramsMap = new HashMap<>(2);
             paramsMap.put("uploadId", uploadId);
             for (int i = 0; i < partSize; i++) {
                 paramsMap.put("partNumber", String.valueOf(i));
                 // 获取上传 url
-                String uploadUrl = minioClient.getPresignedObjectUrl(GetPresignedObjectUrlArgs.builder()
+                String uploadUrl = minioAsyncClient.getPresignedObjectUrl(GetPresignedObjectUrlArgs.builder()
                         // 注意此处指定请求方法为 PUT，前端需对应，否则会报 `SignatureDoesNotMatch` 错误
                         .method(Method.PUT)
                         .bucket(bucketName)
@@ -637,9 +738,9 @@ public class MinioService {
                         .extraQueryParams(paramsMap).build());
                 partUrlList.add(uploadUrl);
             }
-        } catch (ErrorResponseException | IOException | InsufficientDataException
-                 | InternalException | InvalidKeyException | InvalidResponseException
-                 | NoSuchAlgorithmException | XmlParserException | ServerException e) {
+        } catch (IOException | InsufficientDataException | ExecutionException
+                 | InternalException | InvalidKeyException | InterruptedException
+                 | NoSuchAlgorithmException | XmlParserException e) {
             throw new MinioException(e.getMessage());
         }
         LocalDateTime expireTime;
@@ -676,6 +777,7 @@ public class MinioService {
         return mergeMultiPartUpload(bucketName, objectName, uploadId, 1000);
     }
 
+
     /**
      * 合并分片
      *
@@ -687,20 +789,20 @@ public class MinioService {
      */
     public String mergeMultiPartUpload(String bucketName, String objectName, String uploadId, Integer maxParts) throws MinioException {
         try {
-            ListPartsResponse partsResponse = minioAsyncClient.listParts(bucketName, null, objectName, maxParts, 0, uploadId, null, null);
+            ListPartsResponse partsResponse = minioAsyncClient.listMultipart(bucketName, null, objectName, maxParts, 0, uploadId, null, null);
             if (null == partsResponse) {
                 throw new MinioException("分片列表为空");
             }
             List<Part> partList = partsResponse.result().partList();
             Part[] parts = new Part[partList.size()];
             partList.toArray(parts);
-            ObjectWriteResponse writeResponse = minioAsyncClient.completeMultipartUpload(bucketName, null, objectName, uploadId, parts, null, null);
+            ObjectWriteResponse writeResponse = minioAsyncClient.mergeMultipartUpload(bucketName, null, objectName, uploadId, parts, null, null);
             if (null == writeResponse) {
                 throw new MinioException("分片合并失败");
             }
             return getAddress(writeResponse.region());
-        } catch (ErrorResponseException | IOException | InsufficientDataException
-                 | InternalException | InvalidKeyException | InvalidResponseException
+        } catch (ErrorResponseException | IOException | InsufficientDataException | InterruptedException
+                 | InternalException | InvalidKeyException | InvalidResponseException | ExecutionException
                  | NoSuchAlgorithmException | XmlParserException | ServerException e) {
             throw new MinioException(e.getMessage());
         }
@@ -732,8 +834,8 @@ public class MinioService {
     public List<Integer> listUploadMultiPart(String bucketName, String objectName, String uploadId, Integer maxParts) throws MinioException {
         ListPartsResponse partsResponse;
         try {
-            partsResponse = minioAsyncClient.listParts(bucketName, null, objectName, maxParts, 0, uploadId, null, null);
-        } catch (NoSuchAlgorithmException | IOException | InvalidKeyException e) {
+            partsResponse = minioAsyncClient.listMultipart(bucketName, null, objectName, maxParts, 0, uploadId, null, null);
+        } catch (NoSuchAlgorithmException | IOException | InvalidKeyException | ExecutionException | InterruptedException e) {
             throw new MinioException(e.getMessage());
         }
         if (null == partsResponse) {
