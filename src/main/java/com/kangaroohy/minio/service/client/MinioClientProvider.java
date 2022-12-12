@@ -19,7 +19,6 @@ public interface MinioClientProvider {
      * @return MinioClient
      */
     ExtendMinioAsyncClient getAsyncClient(String endpoint, String accessKey, String secretKey);
-
     /**
      * 获取一个MinioClient
      *

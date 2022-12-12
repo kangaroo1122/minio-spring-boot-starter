@@ -2,7 +2,9 @@ package com.kangaroohy.minio.service.client;
 
 import com.google.common.collect.Multimap;
 import io.minio.*;
-import io.minio.errors.*;
+import io.minio.errors.InsufficientDataException;
+import io.minio.errors.InternalException;
+import io.minio.errors.XmlParserException;
 import io.minio.messages.Part;
 
 import java.io.IOException;
@@ -50,9 +52,8 @@ public class ExtendMinioAsyncClient extends MinioAsyncClient {
      * 上传分片数据
      */
     public UploadPartResponse uploadPart(String bucketName, String region, String objectName, Object data, int length, String uploadId,
-                                         int partNumber, Multimap<String, String> extraHeaders, Multimap<String, String> extraQueryParams)
-            throws NoSuchAlgorithmException, InsufficientDataException, IOException, InvalidKeyException,
-            XmlParserException, InternalException, ExecutionException, InterruptedException {
+                                         int partNumber, Multimap<String, String> extraHeaders, Multimap<String, String> extraQueryParams) throws InsufficientDataException,
+            IOException, NoSuchAlgorithmException, InvalidKeyException, XmlParserException, InternalException, ExecutionException, InterruptedException {
         return this.uploadPartAsync(bucketName, region, objectName, data, length, uploadId, partNumber, extraHeaders, extraQueryParams).get();
     }
 
@@ -62,7 +63,7 @@ public class ExtendMinioAsyncClient extends MinioAsyncClient {
     public ObjectWriteResponse mergeMultipartUpload(String bucketName, String region, String objectName, String uploadId,
                                                     Part[] parts, Multimap<String, String> extraHeaders, Multimap<String, String> extraQueryParams)
             throws NoSuchAlgorithmException, InsufficientDataException, IOException, InvalidKeyException, XmlParserException,
-            InternalException, InterruptedException, ExecutionException {
+            InternalException, ExecutionException, InterruptedException {
         return this.completeMultipartUploadAsync(bucketName, region, objectName, uploadId, parts, extraHeaders, extraQueryParams).get();
     }
 
@@ -72,7 +73,7 @@ public class ExtendMinioAsyncClient extends MinioAsyncClient {
     public AbortMultipartUploadResponse removeMultipartUpload(String bucketName, String region, String objectName, String uploadId,
                                                               Multimap<String, String> extraHeaders, Multimap<String, String> extraQueryParams)
             throws NoSuchAlgorithmException, InsufficientDataException, IOException, InvalidKeyException, XmlParserException,
-            InternalException, InterruptedException, ExecutionException {
+            InternalException, ExecutionException, InterruptedException {
         return this.abortMultipartUploadAsync(bucketName, region, objectName, uploadId, extraHeaders, extraQueryParams).get();
     }
 
@@ -80,7 +81,7 @@ public class ExtendMinioAsyncClient extends MinioAsyncClient {
                                            Integer partNumberMarker, String uploadId, Multimap<String, String> extraHeaders,
                                            Multimap<String, String> extraQueryParams)
             throws NoSuchAlgorithmException, InsufficientDataException, IOException, InvalidKeyException, XmlParserException,
-            InternalException, InterruptedException, ExecutionException {
+            InternalException, ExecutionException, InterruptedException {
         return this.listPartsAsync(bucketName, region, objectName, maxParts, partNumberMarker, uploadId, extraHeaders, extraQueryParams).get();
     }
 }

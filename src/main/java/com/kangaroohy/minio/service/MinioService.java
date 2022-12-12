@@ -725,10 +725,10 @@ public class MinioService {
             uploadId = minioAsyncClient.initMultiPartUpload(bucketName, null, objectName, getHeader(contentType), null);
             Map<String, String> paramsMap = new HashMap<>(2);
             paramsMap.put("uploadId", uploadId);
-            for (int i = 0; i < partSize; i++) {
+            for (int i = 1; i <= partSize; i++) {
                 paramsMap.put("partNumber", String.valueOf(i));
                 // 获取上传 url
-                String uploadUrl = minioAsyncClient.getPresignedObjectUrl(GetPresignedObjectUrlArgs.builder()
+                String uploadUrl = minioClient.getPresignedObjectUrl(GetPresignedObjectUrlArgs.builder()
                         // 注意此处指定请求方法为 PUT，前端需对应，否则会报 `SignatureDoesNotMatch` 错误
                         .method(Method.PUT)
                         .bucket(bucketName)
@@ -738,9 +738,8 @@ public class MinioService {
                         .extraQueryParams(paramsMap).build());
                 partUrlList.add(uploadUrl);
             }
-        } catch (IOException | InsufficientDataException | ExecutionException
-                 | InternalException | InvalidKeyException | InterruptedException
-                 | NoSuchAlgorithmException | XmlParserException e) {
+        } catch (IOException | InsufficientDataException | InternalException | InvalidKeyException |
+                 NoSuchAlgorithmException | XmlParserException | ExecutionException | InterruptedException e) {
             throw new MinioException(e.getMessage());
         }
         LocalDateTime expireTime;
@@ -801,9 +800,9 @@ public class MinioService {
                 throw new MinioException("分片合并失败");
             }
             return getAddress(writeResponse.region());
-        } catch (ErrorResponseException | IOException | InsufficientDataException | InterruptedException
-                 | InternalException | InvalidKeyException | InvalidResponseException | ExecutionException
-                 | NoSuchAlgorithmException | XmlParserException | ServerException e) {
+        } catch (ErrorResponseException | IOException | InsufficientDataException | InternalException |
+                 InvalidKeyException | InvalidResponseException | NoSuchAlgorithmException | XmlParserException |
+                 ServerException | ExecutionException | InterruptedException e) {
             throw new MinioException(e.getMessage());
         }
     }
@@ -835,7 +834,8 @@ public class MinioService {
         ListPartsResponse partsResponse;
         try {
             partsResponse = minioAsyncClient.listMultipart(bucketName, null, objectName, maxParts, 0, uploadId, null, null);
-        } catch (NoSuchAlgorithmException | IOException | InvalidKeyException | ExecutionException | InterruptedException e) {
+        } catch (NoSuchAlgorithmException | IOException | InvalidKeyException | ExecutionException |
+                 InterruptedException e) {
             throw new MinioException(e.getMessage());
         }
         if (null == partsResponse) {
