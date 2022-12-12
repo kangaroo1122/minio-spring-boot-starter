@@ -21,6 +21,10 @@
 ### 1 封装方法
 ![method.png](method.png)
 
+20221212 前端直传两个方法名优化
+
+![img.png](img.png)
+
 ### 2 使用
 
 ```yaml
