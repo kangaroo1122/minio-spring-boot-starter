@@ -4,20 +4,26 @@
 
 [![Maven Central](https://img.shields.io/maven-central/v/com.kangaroohy/minio-spring-boot-starter.svg)](https://search.maven.org/#search%7Cgav%7C1%7Cg%3A%22com.kangaroohy%22%20AND%20a%3A%minio-spring-boot-starter%22)
 
-1.x 版本 对应 spring boot 2.x JDK version 1.8+
 
-3.x 版本 对应 spring boot 3.x JDK version 17+
+| 版本  |   spring boot   |   jdk    |
+|:---:|:---------------:|:--------:|
+| 1.x | spring boot 2.x | jdk 1.8+ |
+| 3.x | spring boot 3.x | jdk 17+  |
 
 ~~~xml
 <dependency>
   <groupId>com.kangaroohy</groupId>
   <artifactId>minio-spring-boot-starter</artifactId>
-  <version>1.0.3</version>
+  <version>1.0.4</version>
 </dependency>
 ~~~
 
 ### 1 封装方法
 ![method.png](method.png)
+
+20221212 前端直传两个方法名优化
+
+![img.png](img.png)
 
 ### 2 使用
 
@@ -32,13 +38,13 @@ kangaroohy:
 
 #### 2.1 前端直传
 
-其中，getPolicy() 方法用于获取前端 **POST FormData** 直传的相关凭证信息，如下：
+其中，getPresignedPostFormData() 方法用于获取前端 **POST FormData** 直传的相关凭证信息，如下：
 
 后端接口：
 ```java
     @GetMapping("/oss/policy")
     public RestResult<Map<String, String>> policy(@RequestParam String fileName) throws MinioException {
-        Map<String, String> policy = minioService.getPolicy(bucketName, fileName);
+        Map<String, String> policy = minioService.getPresignedPostFormData(bucketName, fileName);
         return RestResult.ok(policy);
     }
 ```
@@ -69,13 +75,13 @@ httpRequestHandle(param) {
 }
 ```
 
-getPolicyUrl() 方法用于获取前端 **PUT** 直传的 url 信息，如下：
+getPresignedObjectPutUrl() 方法用于获取前端 **PUT** 直传的 url 信息，如下：
 
 后端接口：
 ```java
     @GetMapping("/oss/uploadUrl")
     public RestResult<String> uploadUrl(@RequestParam String fileName) throws MinioException {
-        String url = minioService.getPolicyUrl(bucketName, fileName);
+        String url = minioService.getPresignedObjectPutUrl(bucketName, fileName);
         return RestResult.ok(url);
     }
 ```
@@ -100,7 +106,7 @@ urlUploadHandle(param) {
 }
 ```
 
-经过测试，getPolicyUrl() 方式传输效率 优于 getPolicy() 方式
+经过测试，getPresignedObjectPutUrl() 方式传输效率 优于 getPresignedPostFormData() 方式
 
 这两种方式上传文件，后端充当凭证获取的角色，上传文件不经过后端，由前端直传
 
@@ -114,5 +120,7 @@ urlUploadHandle(param) {
 ```
 
 #### 2.2 分片上传
+
+此方式也为前端直传，后端返回分片地址，上传完成，请求后端合并分片
 
 使用参考：[minio分片上传文件实现](https://blog.csdn.net/Vampire_1122/article/details/128278615)
