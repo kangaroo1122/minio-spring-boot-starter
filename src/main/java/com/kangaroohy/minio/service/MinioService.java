@@ -453,8 +453,8 @@ public class MinioService {
      * @return
      * @throws MinioException
      */
-    public Map<String, String> getPolicy(String bucketName, String fileName) throws MinioException {
-        return getPolicy(bucketName, fileName, ZonedDateTime.now().plusMinutes(10));
+    public Map<String, String> getPresignedPostFormData(String bucketName, String fileName) throws MinioException {
+        return getPresignedPostFormData(bucketName, fileName, ZonedDateTime.now().plusMinutes(10));
     }
 
     /**
@@ -466,8 +466,8 @@ public class MinioService {
      * @return
      * @throws MinioException
      */
-    public Map<String, String> getPolicy(String bucketName, String fileName, ZonedDateTime time) throws MinioException {
-        return getPolicy(bucketName, null, fileName, time);
+    public Map<String, String> getPresignedPostFormData(String bucketName, String fileName, ZonedDateTime time) throws MinioException {
+        return getPresignedPostFormData(bucketName, null, fileName, time);
     }
 
     /**
@@ -479,8 +479,8 @@ public class MinioService {
      * @return
      * @throws MinioException
      */
-    public Map<String, String> getPolicy(String bucketName, String path, String fileName) throws MinioException {
-        return getPolicy(bucketName, path, fileName, ZonedDateTime.now().plusMinutes(10));
+    public Map<String, String> getPresignedPostFormData(String bucketName, String path, String fileName) throws MinioException {
+        return getPresignedPostFormData(bucketName, path, fileName, ZonedDateTime.now().plusMinutes(10));
     }
 
     /**
@@ -493,7 +493,7 @@ public class MinioService {
      * @return
      * @throws MinioException
      */
-    public Map<String, String> getPolicy(String bucketName, String path, String fileName, ZonedDateTime time) throws MinioException {
+    public Map<String, String> getPresignedPostFormData(String bucketName, String path, String fileName, ZonedDateTime time) throws MinioException {
         PostPolicy postPolicy = new PostPolicy(bucketName, time);
         String key = MinioConstant.URI_DELIMITER + getPath(path) + fileName;
         postPolicy.addEqualsCondition("key", key);
@@ -519,8 +519,8 @@ public class MinioService {
      * @return
      * @throws MinioException
      */
-    public String getPolicyUrl(String bucketName, String objectName) throws MinioException {
-        return getPolicyUrl(bucketName, null, objectName);
+    public String getPresignedObjectPutUrl(String bucketName, String objectName) throws MinioException {
+        return getPresignedObjectPutUrl(bucketName, null, objectName);
     }
 
     /**
@@ -532,8 +532,8 @@ public class MinioService {
      * @return
      * @throws MinioException
      */
-    public String getPolicyUrl(String bucketName, String path, String objectName) throws MinioException {
-        return getPolicyUrl(bucketName, path, objectName, 5, TimeUnit.MINUTES);
+    public String getPresignedObjectPutUrl(String bucketName, String path, String objectName) throws MinioException {
+        return getPresignedObjectPutUrl(bucketName, path, objectName, 5, TimeUnit.MINUTES);
     }
 
     /**
@@ -547,7 +547,7 @@ public class MinioService {
      * @return
      * @throws MinioException
      */
-    public String getPolicyUrl(String bucketName, String path, String objectName, Integer time, TimeUnit timeUnit) throws MinioException {
+    public String getPresignedObjectPutUrl(String bucketName, String path, String objectName, Integer time, TimeUnit timeUnit) throws MinioException {
         try {
             if (path != null && !"".equals(path)) {
                 objectName = getPath(path) + objectName;
@@ -560,72 +560,6 @@ public class MinioService {
         } catch (ErrorResponseException | IOException | InsufficientDataException
                  | InternalException | InvalidKeyException | InvalidResponseException
                  | NoSuchAlgorithmException | XmlParserException | ServerException e) {
-            throw new MinioException(e.getMessage());
-        }
-    }
-
-    /**
-     * 单文件上传
-     *
-     * @param bucketName
-     * @param objectName
-     * @return
-     * @throws MinioException
-     */
-    public String getUploadObjectUrl(String bucketName, String objectName) throws MinioException {
-        return getUploadObjectUrl(bucketName, null, objectName);
-    }
-
-    /**
-     * 单文件上传
-     *
-     * @param bucketName
-     * @param path
-     * @param objectName
-     * @return
-     * @throws MinioException
-     */
-    public String getUploadObjectUrl(String bucketName, String path, String objectName) throws MinioException {
-        return getUploadObjectUrl(bucketName, path, objectName, 10);
-    }
-
-    /**
-     * 单文件上传
-     *
-     * @param bucketName
-     * @param path
-     * @param objectName
-     * @param time
-     * @return
-     * @throws MinioException
-     */
-    public String getUploadObjectUrl(String bucketName, String path, String objectName, Integer time) throws MinioException {
-        return getUploadObjectUrl(bucketName, path, objectName, time, TimeUnit.MINUTES);
-    }
-
-    /**
-     * 单文件上传
-     *
-     * @param bucketName
-     * @param path
-     * @param objectName
-     * @param time
-     * @param timeUnit
-     * @return
-     * @throws MinioException
-     */
-    public String getUploadObjectUrl(String bucketName, String path, String objectName, Integer time, TimeUnit timeUnit) throws MinioException {
-        try {
-            if (path != null && !"".equals(path)) {
-                objectName = getPath(path) + objectName;
-            }
-            return minioClient.getPresignedObjectUrl(GetPresignedObjectUrlArgs.builder()
-                    .method(Method.PUT)
-                    .bucket(bucketName)
-                    .object(objectName)
-                    .expiry(time, timeUnit)
-                    .build());
-        } catch (InvalidKeyException | IOException | NoSuchAlgorithmException e) {
             throw new MinioException(e.getMessage());
         }
     }
