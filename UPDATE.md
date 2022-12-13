@@ -1,15 +1,12 @@
-## 1.0.4 & 3.0.2
+## 3.0.3
 
 - 前端直传两个方法名优化
 
 ![img.png](img.png)
 
-## 1.0.3 & 3.0.1
+## 3.0.1
 
-| 版本  |   spring boot   |   jdk    |
-|:---:|:---------------:|:--------:|
-| 1.x | spring boot 2.x | jdk 1.8+ |
-| 3.x | spring boot 3.x | jdk 17+  |
+3.x 版本适配 spring boot 3.x，也可在spring boot 2.x中使用
 
 - minio sdk版本升级到目前官方最新版 8.4.6
 - 分片上传api调整以适配最新版sdk
