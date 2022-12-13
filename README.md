@@ -4,17 +4,13 @@
 
 [![Maven Central](https://img.shields.io/maven-central/v/com.kangaroohy/minio-spring-boot-starter.svg)](https://search.maven.org/#search%7Cgav%7C1%7Cg%3A%22com.kangaroohy%22%20AND%20a%3A%minio-spring-boot-starter%22)
 
-
-| 版本  |   spring boot   |   jdk    |
-|:---:|:---------------:|:--------:|
-| 1.x | spring boot 2.x | jdk 1.8+ |
-| 3.x | spring boot 3.x | jdk 17+  |
+ 3.x 版本适配 spring boot 3.x，也可在spring boot 2.x中使用
 
 ~~~xml
 <dependency>
   <groupId>com.kangaroohy</groupId>
   <artifactId>minio-spring-boot-starter</artifactId>
-  <version>1.0.4</version>
+  <version>3.0.3</version>
 </dependency>
 ~~~
 
