@@ -12,7 +12,6 @@ import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
 import org.springframework.boot.context.properties.EnableConfigurationProperties;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
-import org.springframework.context.annotation.DependsOn;
 
 /**
  * 类 MinioAutoConfiguration 功能描述：
@@ -33,7 +32,7 @@ public class MinioAutoConfiguration {
         this.properties = properties;
     }
 
-    @Bean(name = "minioClientProvider")
+    @Bean
     @ConditionalOnMissingBean(MinioClientProvider.class)
     public MinioClientProvider minioClientProvider() {
         return new MinioClientProviderImpl();
@@ -41,16 +40,14 @@ public class MinioAutoConfiguration {
 
     @Bean
     @ConditionalOnMissingBean(ExtendMinioAsyncClient.class)
-    @DependsOn("minioClientProvider")
-    public ExtendMinioAsyncClient extendMinioClient() {
-        return minioClientProvider().getAsyncClient(properties.getEndpoint(), properties.getAccessKey(), properties.getSecretKey());
+    public ExtendMinioAsyncClient extendMinioAsyncClient(MinioClientProvider minioClientProvider) {
+        return minioClientProvider.getAsyncClient(properties.getEndpoint(), properties.getAccessKey(), properties.getSecretKey());
     }
 
     @Bean
     @ConditionalOnMissingBean(MinioClient.class)
-    @DependsOn("minioClientProvider")
-    public MinioClient minioClient() {
-        return minioClientProvider().getClient(properties.getEndpoint(), properties.getAccessKey(), properties.getSecretKey());
+    public MinioClient minioClient(MinioClientProvider minioClientProvider) {
+        return minioClientProvider.getClient(properties.getEndpoint(), properties.getAccessKey(), properties.getSecretKey());
     }
 
     @Bean
