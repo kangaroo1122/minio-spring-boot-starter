@@ -5,7 +5,7 @@
     <modelVersion>4.0.0</modelVersion>
     <groupId>com.kangaroohy</groupId>
     <artifactId>minio-spring-boot-starter</artifactId>
-    <version>3.0.3</version>
+    <version>3.0.4</version>
     <name>minio-spring-boot-starter</name>
     <description>minio对象存储spring boot starter封装组件</description>
     <url>https://github.com/kangaroo1122/minio-spring-boot-starter</url>
@@ -95,6 +95,16 @@
 
     <build>
         <plugins>
+            <plugin>
+                <groupId>org.apache.maven.plugins</groupId>
+                <artifactId>maven-compiler-plugin</artifactId>
+                <version>3.10.1</version>
+                <configuration>
+                    <compilerArgs>
+                        <arg>-parameters</arg>
+                    </compilerArgs>
+                </configuration>
+            </plugin>
             <!--生成源码插件-->
             <plugin>
                 <groupId>org.apache.maven.plugins</groupId>
