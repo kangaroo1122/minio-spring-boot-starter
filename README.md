@@ -10,7 +10,7 @@
 <dependency>
   <groupId>com.kangaroohy</groupId>
   <artifactId>minio-spring-boot-starter</artifactId>
-  <version>3.0.6</version>
+  <version>3.0.7</version>
 </dependency>
 ~~~
 
