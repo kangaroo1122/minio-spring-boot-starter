@@ -1,11 +1,11 @@
 package com.kangaroohy.minio.service;
 
-import com.google.common.collect.HashMultimap;
 import com.kangaroohy.minio.configuration.MinioProperties;
 import com.kangaroohy.minio.constant.MinioConstant;
 import com.kangaroohy.minio.entity.MultiPartUploadInfo;
 import com.kangaroohy.minio.enums.PolicyType;
 import com.kangaroohy.minio.service.client.ExtendMinioAsyncClient;
+import com.kangaroohy.minio.utils.CustomUtil;
 import io.minio.*;
 import io.minio.errors.*;
 import io.minio.http.Method;
@@ -17,8 +17,6 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.security.InvalidKeyException;
 import java.security.NoSuchAlgorithmException;
-import java.time.LocalDate;
-import java.time.LocalDateTime;
 import java.time.ZonedDateTime;
 import java.util.*;
 import java.util.concurrent.ExecutionException;
@@ -261,9 +259,9 @@ public class MinioService {
      * @return
      */
     public InputStream getObject(String bucketName, String objectName) throws MinioException {
-        InputStream inputStream = null;
+        InputStream inputStream;
         try {
-            inputStream = minioClient.getObject(GetObjectArgs.builder().bucket(bucketName).object(getObjectName(objectName)).build());
+            inputStream = minioClient.getObject(GetObjectArgs.builder().bucket(bucketName).object(CustomUtil.getObjectName(objectName)).build());
         } catch (ErrorResponseException | IOException | InsufficientDataException
                  | InternalException | InvalidKeyException | InvalidResponseException
                  | NoSuchAlgorithmException | XmlParserException | ServerException e) {
@@ -281,9 +279,9 @@ public class MinioService {
      * @return
      */
     public InputStream getObject(String bucketName, String objectName, String versionId) throws MinioException {
-        InputStream inputStream = null;
+        InputStream inputStream;
         try {
-            inputStream = minioClient.getObject(GetObjectArgs.builder().bucket(bucketName).object(getObjectName(objectName)).versionId(versionId).build());
+            inputStream = minioClient.getObject(GetObjectArgs.builder().bucket(bucketName).object(CustomUtil.getObjectName(objectName)).versionId(versionId).build());
         } catch (ErrorResponseException | IOException | InsufficientDataException
                  | InternalException | InvalidKeyException | InvalidResponseException
                  | NoSuchAlgorithmException | XmlParserException | ServerException e) {
@@ -304,7 +302,7 @@ public class MinioService {
     public InputStream getObject(String bucketName, String objectName, long length, Long offset) throws MinioException {
         InputStream inputStream;
         try {
-            inputStream = minioClient.getObject(GetObjectArgs.builder().bucket(bucketName).object(getObjectName(objectName)).length(length).offset(offset).build());
+            inputStream = minioClient.getObject(GetObjectArgs.builder().bucket(bucketName).object(CustomUtil.getObjectName(objectName)).length(length).offset(offset).build());
         } catch (ErrorResponseException | IOException | InsufficientDataException
                  | InternalException | InvalidKeyException | InvalidResponseException
                  | NoSuchAlgorithmException | XmlParserException | ServerException e) {
@@ -347,7 +345,7 @@ public class MinioService {
      */
     public String getObjectUrl(String bucketName, String objectName, boolean replaceAddress, Integer expires) throws MinioException {
         try {
-            String objectUrl = minioClient.getPresignedObjectUrl(GetPresignedObjectUrlArgs.builder().bucket(bucketName).object(getObjectName(objectName)).expiry(expires).method(Method.GET).build());
+            String objectUrl = minioClient.getPresignedObjectUrl(GetPresignedObjectUrlArgs.builder().bucket(bucketName).object(CustomUtil.getObjectName(objectName)).expiry(expires).method(Method.GET).build());
             return replaceAddress && properties.getAddress() != null ? objectUrl.replace(properties.getEndpoint(), properties.getAddress()) : objectUrl;
         } catch (ErrorResponseException | IOException | InsufficientDataException
                  | InternalException | InvalidKeyException | InvalidResponseException
@@ -417,9 +415,9 @@ public class MinioService {
         try {
             return minioClient.putObject(PutObjectArgs.builder()
                     .bucket(bucketName)
-                    .object(getObjectName(objectName))
+                    .object(CustomUtil.getObjectName(objectName))
                     .stream(stream, objectSize, partSize)
-                    .contentType(getContentType(contentType))
+                    .contentType(CustomUtil.getContentType(contentType))
                     .build());
         } catch (ErrorResponseException | IOException | InsufficientDataException
                  | InternalException | InvalidKeyException | InvalidResponseException
@@ -437,7 +435,7 @@ public class MinioService {
      */
     public boolean removeObject(String bucketName, String objectName) throws MinioException {
         try {
-            minioClient.removeObject(RemoveObjectArgs.builder().bucket(bucketName).object(getObjectName(objectName)).build());
+            minioClient.removeObject(RemoveObjectArgs.builder().bucket(bucketName).object(CustomUtil.getObjectName(objectName)).build());
             return true;
         } catch (ErrorResponseException | IOException | InsufficientDataException
                  | InternalException | InvalidKeyException | InvalidResponseException
@@ -454,7 +452,7 @@ public class MinioService {
      * @return
      */
     public List<String> removeObjects(String bucketName, Collection<String> objectNames) throws MinioException {
-        List<DeleteObject> objects = objectNames.stream().map(this::getObjectName).map(DeleteObject::new).collect(Collectors.toList());
+        List<DeleteObject> objects = objectNames.stream().map(CustomUtil::getObjectName).map(DeleteObject::new).collect(Collectors.toList());
         Iterable<Result<DeleteError>> results = minioClient.removeObjects(RemoveObjectsArgs.builder().bucket(bucketName).objects(objects).build());
         List<String> errorDeleteObjects = new ArrayList<>();
         try {
@@ -521,7 +519,7 @@ public class MinioService {
      */
     public Map<String, String> getPresignedPostFormData(String bucketName, String path, String fileName, ZonedDateTime time) throws MinioException {
         PostPolicy postPolicy = new PostPolicy(bucketName, time);
-        String key = MinioConstant.URI_DELIMITER + getPath(path) + fileName;
+        String key = MinioConstant.URI_DELIMITER + CustomUtil.getPath(path) + fileName;
         postPolicy.addEqualsCondition("key", key);
         try {
             Map<String, String> map = minioClient.getPresignedPostFormData(postPolicy);
@@ -559,7 +557,20 @@ public class MinioService {
      * @throws MinioException
      */
     public String getPresignedObjectPutUrl(String bucketName, String path, String objectName) throws MinioException {
-        return getPresignedObjectPutUrl(bucketName, path, objectName, 5, TimeUnit.MINUTES);
+        return getPresignedObjectPutUrl(bucketName, path, objectName, 5);
+    }
+
+    /**
+     * 获取上传文件的url
+     *
+     * @param bucketName
+     * @param path
+     * @param objectName
+     * @return
+     * @throws MinioException
+     */
+    public String getPresignedObjectPutUrl(String bucketName, String path, String objectName, Integer time) throws MinioException {
+        return getPresignedObjectPutUrl(bucketName, path, objectName, time, TimeUnit.MINUTES);
     }
 
     /**
@@ -576,7 +587,7 @@ public class MinioService {
     public String getPresignedObjectPutUrl(String bucketName, String path, String objectName, Integer time, TimeUnit timeUnit) throws MinioException {
         try {
             if (path != null && !"".equals(path)) {
-                objectName = getPath(path) + getObjectName(objectName);
+                objectName = CustomUtil.getPath(path) + CustomUtil.getObjectName(objectName);
             }
             return minioClient.getPresignedObjectUrl(GetPresignedObjectUrlArgs.builder()
                     .method(Method.PUT)
@@ -680,9 +691,9 @@ public class MinioService {
         List<String> partUrlList = new ArrayList<>();
         try {
             if (path != null && !"".equals(path)) {
-                objectName = getPath(path) + getObjectName(objectName);
+                objectName = CustomUtil.getPath(path) + CustomUtil.getObjectName(objectName);
             }
-            uploadId = minioAsyncClient.initMultiPartUpload(bucketName, null, objectName, getHeader(contentType), null);
+            uploadId = minioAsyncClient.initMultiPartUpload(bucketName, null, objectName, CustomUtil.getHeader(contentType), null);
             Map<String, String> paramsMap = new HashMap<>(2);
             paramsMap.put("uploadId", uploadId);
             for (int i = 1; i <= partSize; i++) {
@@ -702,23 +713,11 @@ public class MinioService {
                  NoSuchAlgorithmException | XmlParserException | ExecutionException | InterruptedException e) {
             throw new MinioException(e.getMessage());
         }
-        LocalDateTime expireTime;
-
-        if (timeUnit.equals(TimeUnit.DAYS)) {
-            expireTime = LocalDateTime.now().plusDays(time);
-        } else if (timeUnit.equals(TimeUnit.HOURS)) {
-            expireTime = LocalDateTime.now().plusHours(time);
-        } else if (timeUnit.equals(TimeUnit.MINUTES)) {
-            expireTime = LocalDateTime.now().plusMinutes(time);
-        } else if (timeUnit.equals(TimeUnit.SECONDS)) {
-            expireTime = LocalDateTime.now().plusSeconds(time);
-        } else {
-            expireTime = LocalDateTime.now().plusMinutes(time);
-        }
 
         return MultiPartUploadInfo.builder()
                 .uploadId(uploadId)
-                .expiryTime(expireTime)
+                .fileName(objectName)
+                .expiryTime(CustomUtil.getLocalDateTime(time, timeUnit))
                 .uploadUrls(partUrlList)
                 .build();
     }
@@ -748,14 +747,14 @@ public class MinioService {
      */
     public String mergeMultiPartUpload(String bucketName, String objectName, String uploadId, Integer maxParts) throws MinioException {
         try {
-            ListPartsResponse partsResponse = minioAsyncClient.listMultipart(bucketName, null, getObjectName(objectName), maxParts, 0, uploadId, null, null);
+            ListPartsResponse partsResponse = minioAsyncClient.listMultipart(bucketName, null, CustomUtil.getObjectName(objectName), maxParts, 0, uploadId, null, null);
             if (null == partsResponse) {
                 throw new MinioException("分片列表为空");
             }
             List<Part> partList = partsResponse.result().partList();
             Part[] parts = new Part[partList.size()];
             partList.toArray(parts);
-            ObjectWriteResponse writeResponse = minioAsyncClient.mergeMultipartUpload(bucketName, null, getObjectName(objectName), uploadId, parts, null, null);
+            ObjectWriteResponse writeResponse = minioAsyncClient.mergeMultipartUpload(bucketName, null, CustomUtil.getObjectName(objectName), uploadId, parts, null, null);
             if (null == writeResponse) {
                 throw new MinioException("分片合并失败");
             }
@@ -793,7 +792,7 @@ public class MinioService {
     public List<Integer> listUploadMultiPart(String bucketName, String objectName, String uploadId, Integer maxParts) throws MinioException {
         ListPartsResponse partsResponse;
         try {
-            partsResponse = minioAsyncClient.listMultipart(bucketName, null, getObjectName(objectName), maxParts, 0, uploadId, null, null);
+            partsResponse = minioAsyncClient.listMultipart(bucketName, null, CustomUtil.getObjectName(objectName), maxParts, 0, uploadId, null, null);
         } catch (NoSuchAlgorithmException | IOException | InvalidKeyException | ExecutionException |
                  InterruptedException e) {
             throw new MinioException(e.getMessage());
@@ -810,7 +809,7 @@ public class MinioService {
      * @return
      */
     public String getDatePath() {
-        return String.join(MinioConstant.URI_DELIMITER, getDateFolder());
+        return String.join(MinioConstant.URI_DELIMITER, CustomUtil.getDateFolder());
     }
 
     /**
@@ -835,64 +834,4 @@ public class MinioService {
         return url.replace(properties.getEndpoint(), address);
     }
 
-    /**
-     * 获取年月日[2021, 11, 11]
-     *
-     * @return
-     */
-    private String[] getDateFolder() {
-        String[] retVal = new String[3];
-
-        LocalDate localDate = LocalDate.now();
-        retVal[0] = localDate.getYear() + "";
-
-        int month = localDate.getMonthValue();
-        retVal[1] = month < 10 ? "0" + month : month + "";
-
-        int day = localDate.getDayOfMonth();
-        retVal[2] = day < 10 ? "0" + day : day + "";
-
-        return retVal;
-    }
-
-    /**
-     * 替换objectName 首个 /
-     *
-     * @param objectName
-     * @return
-     */
-    private String getObjectName(String objectName) {
-        return objectName.length() > 1 && objectName.startsWith(MinioConstant.URI_DELIMITER) ? objectName.substring(1) : objectName;
-    }
-
-    /**
-     * 配置的路径以 / 开始，去掉第一个路径符
-     *
-     * @param path
-     * @return
-     */
-    private String getPath(String path) {
-        if (path == null || "".equals(path)) {
-            return "";
-        }
-        path = path.startsWith(MinioConstant.URI_DELIMITER) ? path.substring(path.indexOf(MinioConstant.URI_DELIMITER) + 1) : path;
-        path = path.endsWith(MinioConstant.URI_DELIMITER) ? path : path + MinioConstant.URI_DELIMITER;
-        return path;
-    }
-
-    private HashMultimap<String, String> getHeader(String contentType) {
-        if (contentType == null || "".equals(contentType)) {
-            contentType = "application/octet-stream";
-        }
-        HashMultimap<String, String> headers = HashMultimap.create();
-        headers.put("Content-Type", contentType);
-        return headers;
-    }
-
-    private String getContentType(String contentType) {
-        if (contentType == null || "".equals(contentType)) {
-            contentType = "application/octet-stream";
-        }
-        return contentType;
-    }
 }
