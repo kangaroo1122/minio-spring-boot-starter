@@ -10,7 +10,7 @@ import io.minio.*;
 import io.minio.errors.*;
 import io.minio.http.Method;
 import io.minio.messages.*;
-import org.apache.log4j.Logger;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 
 import java.io.IOException;
@@ -31,9 +31,8 @@ import java.util.stream.Collectors;
  * @date 2021/11/28 00:15
  */
 @Service
+@Slf4j
 public class MinioService {
-    public static final Logger logger = Logger.getLogger(MinioService.class);
-
     private final MinioProperties properties;
 
     private final ExtendMinioAsyncClient minioAsyncClient;
@@ -458,7 +457,7 @@ public class MinioService {
         try {
             for (Result<DeleteError> result : results) {
                 errorDeleteObjects.add(result.get().objectName());
-                logger.error(String.format("Error in deleting object %s:%s, code=%s, message=%s",
+                log.error(String.format("Error in deleting object %s:%s, code=%s, message=%s",
                         bucketName, result.get().objectName(), result.get().code(), result.get().message()));
             }
         } catch (ErrorResponseException | IOException | InsufficientDataException
