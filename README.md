@@ -1,5 +1,7 @@
 ## minio-spring-boot-starter
 
+版本更新日志查看：[UPDATE.md](UPDATE.md)
+
 ### maven
 
 [![Maven Central](https://img.shields.io/maven-central/v/com.kangaroohy/minio-spring-boot-starter.svg)](https://search.maven.org/#search%7Cgav%7C1%7Cg%3A%22com.kangaroohy%22%20AND%20a%3A%minio-spring-boot-starter%22)
