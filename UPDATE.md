@@ -1,3 +1,10 @@
+## 3.0.10
+
+- 新增 `initMultiPartUpload`，返回分片文件上传的初始化信息
+- `initMultiPartUploadId` -> `getPresignedMultipartUploadUrls` 方法，支持一次性返回全部分片预签名地址，向下不兼容！！
+- 新增 `getPresignedMultipartUploadUrlsByPartNumbers` 方法，支持根据分片 partNumber 获取对应的文件上传预签名地址
+- 新增默认`bucketName`配置
+
 ## 3.0.9
 
 - 修复组件bean扫描可能失败的问题

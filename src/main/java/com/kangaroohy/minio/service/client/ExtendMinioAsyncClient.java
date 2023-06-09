@@ -5,6 +5,7 @@ import io.minio.*;
 import io.minio.errors.InsufficientDataException;
 import io.minio.errors.InternalException;
 import io.minio.errors.XmlParserException;
+import io.minio.messages.InitiateMultipartUploadResult;
 import io.minio.messages.Part;
 
 import java.io.IOException;
@@ -40,12 +41,11 @@ public class ExtendMinioAsyncClient extends MinioAsyncClient {
      * @throws InternalException
      * @throws IOException
      */
-    public String initMultiPartUpload(String bucketName, String region, String objectName,
-                                      Multimap<String, String> headers, Multimap<String, String> extraQueryParams)
+    public InitiateMultipartUploadResult initMultiPartUpload(String bucketName, String region, String objectName,
+                                                             Multimap<String, String> headers, Multimap<String, String> extraQueryParams)
             throws InsufficientDataException, NoSuchAlgorithmException, IOException,
             InvalidKeyException, XmlParserException, InternalException, ExecutionException, InterruptedException {
-        CreateMultipartUploadResponse response = this.createMultipartUploadAsync(bucketName, region, objectName, headers, extraQueryParams).get();
-        return response.result().uploadId();
+        return this.createMultipartUploadAsync(bucketName, region, objectName, headers, extraQueryParams).get().result();
     }
 
     /**

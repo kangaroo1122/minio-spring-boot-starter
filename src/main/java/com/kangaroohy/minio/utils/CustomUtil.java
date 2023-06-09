@@ -16,7 +16,8 @@ import java.util.concurrent.TimeUnit;
  */
 public class CustomUtil {
 
-    private CustomUtil() {}
+    private CustomUtil() {
+    }
 
     public static Date formDuration(Duration duration) {
         return Date.from(Instant.now().plus(duration));
