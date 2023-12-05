@@ -1,6 +1,6 @@
 ## minio-spring-boot-starter
 
-版本更新日志查看：[UPDATE.md](UPDATE.md)
+版本更新日志查看：[UPDATE.md](CHANGELOG.md)
 
 ### maven
 
