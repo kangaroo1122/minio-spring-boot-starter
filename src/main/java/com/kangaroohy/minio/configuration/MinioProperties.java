@@ -3,8 +3,6 @@ package com.kangaroohy.minio.configuration;
 import com.kangaroohy.minio.constant.MinioConstant;
 import lombok.Data;
 import org.springframework.boot.context.properties.ConfigurationProperties;
-import org.springframework.context.annotation.Primary;
-import org.springframework.stereotype.Component;
 
 /**
  * 类 MinioProperties 功能描述：
@@ -14,9 +12,7 @@ import org.springframework.stereotype.Component;
  * @date 2021/11/28 00:15
  */
 @Data
-@Component
 @ConfigurationProperties(prefix = MinioConstant.PREFIX)
-@Primary
 public class MinioProperties {
 
     /**
