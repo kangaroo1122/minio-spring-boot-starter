@@ -1,9 +1,11 @@
 package com.kangaroohy.minio.service;
 
+import com.google.common.collect.Multimap;
 import com.kangaroohy.minio.configuration.MinioProperties;
 import com.kangaroohy.minio.constant.MinioConstant;
 import com.kangaroohy.minio.entity.MultiPartUploadInfo;
 import com.kangaroohy.minio.enums.PolicyType;
+import com.kangaroohy.minio.exceptions.MinioServiceException;
 import com.kangaroohy.minio.service.client.ExtendMinioAsyncClient;
 import com.kangaroohy.minio.utils.CustomUtil;
 import io.minio.*;
@@ -52,13 +54,13 @@ public class MinioService {
      * @param bucketName bucket名称
      * @return
      */
-    public boolean bucketExists(String bucketName) throws MinioException {
+    public boolean bucketExists(String bucketName) throws MinioServiceException {
         try {
             return minioClient.bucketExists(BucketExistsArgs.builder().bucket(bucketName).build());
         } catch (ErrorResponseException | IOException | InsufficientDataException
                  | InternalException | InvalidKeyException | InvalidResponseException
                  | NoSuchAlgorithmException | XmlParserException | ServerException e) {
-            throw new MinioException(e.getMessage());
+            throw new MinioServiceException("Error checking if bucket exists: " + bucketName, e);
         }
     }
 
@@ -68,7 +70,7 @@ public class MinioService {
      * @param bucketName bucket名称
      * @return
      */
-    public boolean createBucket(String bucketName) throws MinioException {
+    public boolean createBucket(String bucketName) throws MinioServiceException {
         try {
             if (!bucketExists(bucketName)) {
                 minioClient.makeBucket(MakeBucketArgs.builder().bucket(bucketName).build());
@@ -77,7 +79,7 @@ public class MinioService {
         } catch (ErrorResponseException | IOException | InsufficientDataException
                  | InternalException | InvalidKeyException | InvalidResponseException
                  | NoSuchAlgorithmException | XmlParserException | ServerException e) {
-            throw new MinioException(e.getMessage());
+            throw new MinioServiceException("Failed to create bucket: " + bucketName, e);
         }
     }
 
@@ -88,7 +90,7 @@ public class MinioService {
      * @param policyType 访问策略
      * @return
      */
-    public boolean createBucket(String bucketName, PolicyType policyType) throws MinioException {
+    public boolean createBucket(String bucketName, PolicyType policyType) throws MinioServiceException {
         try {
             if (this.createBucket(bucketName)) {
                 minioClient.setBucketPolicy(SetBucketPolicyArgs.builder().bucket(bucketName).config(PolicyType.getPolicy(policyType, bucketName)).build());
@@ -97,7 +99,7 @@ public class MinioService {
         } catch (ErrorResponseException | IOException | InsufficientDataException
                  | InternalException | InvalidKeyException | InvalidResponseException
                  | NoSuchAlgorithmException | XmlParserException | ServerException e) {
-            throw new MinioException(e.getMessage());
+            throw new MinioServiceException("Failed to create bucket: " + bucketName, e);
         }
     }
 
@@ -108,7 +110,7 @@ public class MinioService {
      * @param policy     访问策略
      * @return
      */
-    public boolean createBucket(String bucketName, String policy) throws MinioException {
+    public boolean createBucket(String bucketName, String policy) throws MinioServiceException {
         try {
             if (this.createBucket(bucketName)) {
                 minioClient.setBucketPolicy(SetBucketPolicyArgs.builder().bucket(bucketName).config(policy).build());
@@ -117,7 +119,7 @@ public class MinioService {
         } catch (ErrorResponseException | IOException | InsufficientDataException
                  | InternalException | InvalidKeyException | InvalidResponseException
                  | NoSuchAlgorithmException | XmlParserException | ServerException e) {
-            throw new MinioException(e.getMessage());
+            throw new MinioServiceException("Failed to create bucket: " + bucketName, e);
         }
     }
 
@@ -128,17 +130,17 @@ public class MinioService {
      * @param policyType 访问策略
      * @return
      */
-    public boolean setBucketPolicy(String bucketName, PolicyType policyType) throws MinioException {
+    public boolean setBucketPolicy(String bucketName, PolicyType policyType) throws MinioServiceException {
         try {
             if (!bucketExists(bucketName)) {
-                throw new MinioException(bucketName + " bucket does not exist.");
+                throw new MinioServiceException(bucketName + " bucket does not exist.");
             }
             minioClient.setBucketPolicy(SetBucketPolicyArgs.builder().bucket(bucketName).config(PolicyType.getPolicy(policyType, bucketName)).build());
             return true;
         } catch (ErrorResponseException | IOException | InsufficientDataException
                  | InternalException | InvalidKeyException | InvalidResponseException
                  | NoSuchAlgorithmException | XmlParserException | ServerException e) {
-            throw new MinioException(e.getMessage());
+            throw new MinioServiceException("Failed to set bucket policy for bucket: " + bucketName, e);
         }
     }
 
@@ -149,17 +151,17 @@ public class MinioService {
      * @param policy     访问策略
      * @return
      */
-    public boolean setBucketPolicy(String bucketName, String policy) throws MinioException {
+    public boolean setBucketPolicy(String bucketName, String policy) throws MinioServiceException {
         try {
             if (!bucketExists(bucketName)) {
-                throw new MinioException(bucketName + " bucket does not exist.");
+                throw new MinioServiceException(bucketName + " bucket does not exist.");
             }
             minioClient.setBucketPolicy(SetBucketPolicyArgs.builder().bucket(bucketName).config(policy).build());
             return true;
         } catch (ErrorResponseException | IOException | InsufficientDataException
                  | InternalException | InvalidKeyException | InvalidResponseException
                  | NoSuchAlgorithmException | XmlParserException | ServerException e) {
-            throw new MinioException(e.getMessage());
+            throw new MinioServiceException("Failed to set bucket policy for bucket: " + bucketName, e);
         }
     }
 
@@ -168,13 +170,13 @@ public class MinioService {
      *
      * @return
      */
-    public List<Bucket> listBuckets() throws MinioException {
+    public List<Bucket> listBuckets() throws MinioServiceException {
         try {
             return minioClient.listBuckets();
         } catch (ErrorResponseException | IOException | InsufficientDataException
                  | InternalException | InvalidKeyException | InvalidResponseException
                  | NoSuchAlgorithmException | XmlParserException | ServerException e) {
-            throw new MinioException(e.getMessage());
+            throw new MinioServiceException("Failed to list buckets", e);
         }
     }
 
@@ -184,7 +186,7 @@ public class MinioService {
      * @param bucketName bucket名称
      * @return
      */
-    public Optional<Bucket> getBucket(String bucketName) throws MinioException {
+    public Optional<Bucket> getBucket(String bucketName) throws MinioServiceException {
         return listBuckets().stream().filter(item -> item.name().equals(bucketName)).findFirst();
     }
 
@@ -194,7 +196,7 @@ public class MinioService {
      * @param bucketName bucket名称
      * @return
      */
-    public boolean removeBucket(String bucketName) throws MinioException {
+    public boolean removeBucket(String bucketName) throws MinioServiceException {
         try {
             if (bucketExists(bucketName)) {
                 minioClient.removeBucket(RemoveBucketArgs.builder().bucket(bucketName).build());
@@ -203,7 +205,7 @@ public class MinioService {
         } catch (ErrorResponseException | IOException | InsufficientDataException
                  | InternalException | InvalidKeyException | InvalidResponseException
                  | NoSuchAlgorithmException | XmlParserException | ServerException e) {
-            throw new MinioException(e.getMessage());
+            throw new MinioServiceException("Failed to remove bucket: " + bucketName, e);
         }
     }
 
@@ -212,7 +214,7 @@ public class MinioService {
      *
      * @return
      */
-    public List<Item> listObjects() throws MinioException {
+    public List<Item> listObjects() throws MinioServiceException {
         return listObjects(getBucketName());
     }
 
@@ -222,17 +224,17 @@ public class MinioService {
      * @param bucketName bucket名称
      * @return
      */
-    public List<Item> listObjects(String bucketName) throws MinioException {
+    public List<Item> listObjects(String bucketName) throws MinioServiceException {
         return listObjects(bucketName, false);
     }
 
     /**
      * 遍历文件
      *
-     * @param recursive  是否递归查询，是，则会返回文件全路径，否，则返回第一级文件夹
+     * @param recursive 是否递归查询，是，则会返回文件全路径，否，则返回第一级文件夹
      * @return
      */
-    public List<Item> listObjects(boolean recursive) throws MinioException {
+    public List<Item> listObjects(boolean recursive) throws MinioServiceException {
         return listObjects(getBucketName(), recursive);
     }
 
@@ -243,7 +245,7 @@ public class MinioService {
      * @param recursive  是否递归查询，是，则会返回文件全路径，否，则返回第一级文件夹
      * @return
      */
-    public List<Item> listObjects(String bucketName, boolean recursive) throws MinioException {
+    public List<Item> listObjects(String bucketName, boolean recursive) throws MinioServiceException {
         return listObjects(bucketName, null, recursive);
     }
 
@@ -254,7 +256,7 @@ public class MinioService {
      * @param prefix     前缀，包括路径
      * @return
      */
-    public List<Item> listObjects(String bucketName, String prefix) throws MinioException {
+    public List<Item> listObjects(String bucketName, String prefix) throws MinioServiceException {
         return listObjects(bucketName, prefix, false);
     }
 
@@ -266,7 +268,7 @@ public class MinioService {
      * @param recursive  是否递归查询
      * @return
      */
-    public List<Item> listObjects(String bucketName, String prefix, boolean recursive) throws MinioException {
+    public List<Item> listObjects(String bucketName, String prefix, boolean recursive) throws MinioServiceException {
         List<Item> objectList = new ArrayList<>();
         Iterable<Result<Item>> results = minioClient.listObjects(ListObjectsArgs.builder().bucket(bucketName).prefix(prefix).recursive(recursive).build());
         for (Result<Item> itemResult : results) {
@@ -275,7 +277,7 @@ public class MinioService {
             } catch (ErrorResponseException | IOException | InsufficientDataException
                      | InternalException | InvalidKeyException | InvalidResponseException
                      | NoSuchAlgorithmException | XmlParserException | ServerException e) {
-                throw new MinioException(e.getMessage());
+                throw new MinioServiceException("Failed to list objects in bucket: " + bucketName, e);
             }
         }
         return objectList;
@@ -287,7 +289,7 @@ public class MinioService {
      * @param objectName
      * @return
      */
-    public InputStream getObject(String objectName) throws MinioException {
+    public InputStream getObject(String objectName) throws MinioServiceException {
         return getObject(getBucketName(), objectName);
     }
 
@@ -298,14 +300,14 @@ public class MinioService {
      * @param objectName
      * @return
      */
-    public InputStream getObject(String bucketName, String objectName) throws MinioException {
+    public InputStream getObject(String bucketName, String objectName) throws MinioServiceException {
         InputStream inputStream;
         try {
             inputStream = minioClient.getObject(GetObjectArgs.builder().bucket(bucketName).object(CustomUtil.getObjectName(objectName)).build());
         } catch (ErrorResponseException | IOException | InsufficientDataException
                  | InternalException | InvalidKeyException | InvalidResponseException
                  | NoSuchAlgorithmException | XmlParserException | ServerException e) {
-            throw new MinioException(e.getMessage());
+            throw new MinioServiceException("Failed to get object: " + objectName + " from bucket: " + bucketName, e);
         }
         return inputStream;
     }
@@ -318,14 +320,14 @@ public class MinioService {
      * @param versionId
      * @return
      */
-    public InputStream getObject(String bucketName, String objectName, String versionId) throws MinioException {
+    public InputStream getObject(String bucketName, String objectName, String versionId) throws MinioServiceException {
         InputStream inputStream;
         try {
             inputStream = minioClient.getObject(GetObjectArgs.builder().bucket(bucketName).object(CustomUtil.getObjectName(objectName)).versionId(versionId).build());
         } catch (ErrorResponseException | IOException | InsufficientDataException
                  | InternalException | InvalidKeyException | InvalidResponseException
                  | NoSuchAlgorithmException | XmlParserException | ServerException e) {
-            throw new MinioException(e.getMessage());
+            throw new MinioServiceException("Failed to get object: " + objectName + " from bucket: " + bucketName, e);
         }
         return inputStream;
     }
@@ -339,14 +341,14 @@ public class MinioService {
      * @param offset
      * @return
      */
-    public InputStream getObject(String bucketName, String objectName, long length, Long offset) throws MinioException {
+    public InputStream getObject(String bucketName, String objectName, long length, Long offset) throws MinioServiceException {
         InputStream inputStream;
         try {
             inputStream = minioClient.getObject(GetObjectArgs.builder().bucket(bucketName).object(CustomUtil.getObjectName(objectName)).length(length).offset(offset).build());
         } catch (ErrorResponseException | IOException | InsufficientDataException
                  | InternalException | InvalidKeyException | InvalidResponseException
                  | NoSuchAlgorithmException | XmlParserException | ServerException e) {
-            throw new MinioException(e.getMessage());
+            throw new MinioServiceException("Failed to get object: " + objectName + " from bucket: " + bucketName, e);
         }
         return inputStream;
     }
@@ -357,7 +359,7 @@ public class MinioService {
      * @param objectName 文件
      * @return
      */
-    public String getObjectUrl(String objectName) throws MinioException {
+    public String getObjectUrl(String objectName) throws MinioServiceException {
         return getObjectUrl(getBucketName(), objectName);
     }
 
@@ -368,7 +370,7 @@ public class MinioService {
      * @param objectName 文件
      * @return
      */
-    public String getObjectUrl(String bucketName, String objectName) throws MinioException {
+    public String getObjectUrl(String bucketName, String objectName) throws MinioServiceException {
         return getObjectUrl(bucketName, objectName, false);
     }
 
@@ -380,7 +382,7 @@ public class MinioService {
      * @param replaceAddress 是否替换访问域名
      * @return
      */
-    public String getObjectUrl(String bucketName, String objectName, boolean replaceAddress) throws MinioException {
+    public String getObjectUrl(String bucketName, String objectName, boolean replaceAddress) throws MinioServiceException {
         return getObjectUrl(bucketName, objectName, replaceAddress, GetPresignedObjectUrlArgs.DEFAULT_EXPIRY_TIME);
     }
 
@@ -393,14 +395,14 @@ public class MinioService {
      * @param expires        过期时间，单位秒
      * @return
      */
-    public String getObjectUrl(String bucketName, String objectName, boolean replaceAddress, Integer expires) throws MinioException {
+    public String getObjectUrl(String bucketName, String objectName, boolean replaceAddress, Integer expires) throws MinioServiceException {
         try {
             String objectUrl = minioClient.getPresignedObjectUrl(GetPresignedObjectUrlArgs.builder().bucket(bucketName).object(CustomUtil.getObjectName(objectName)).expiry(expires).method(Method.GET).build());
             return replaceAddress && properties.getAddress() != null ? objectUrl.replace(properties.getEndpoint(), properties.getAddress()) : objectUrl;
         } catch (ErrorResponseException | IOException | InsufficientDataException
                  | InternalException | InvalidKeyException | InvalidResponseException
                  | NoSuchAlgorithmException | XmlParserException | ServerException e) {
-            throw new MinioException(e.getMessage());
+            throw new MinioServiceException("Failed to get presigned URL for object: " + objectName + " in bucket: " + bucketName, e);
         }
     }
 
@@ -411,7 +413,7 @@ public class MinioService {
      * @param stream     文件流
      * @return
      */
-    public ObjectWriteResponse putObject(String objectName, InputStream stream) throws MinioException {
+    public ObjectWriteResponse putObject(String objectName, InputStream stream) throws MinioServiceException {
         return putObject(getBucketName(), objectName, stream);
     }
 
@@ -423,7 +425,7 @@ public class MinioService {
      * @param stream     文件流
      * @return
      */
-    public ObjectWriteResponse putObject(String bucketName, String objectName, InputStream stream) throws MinioException {
+    public ObjectWriteResponse putObject(String bucketName, String objectName, InputStream stream) throws MinioServiceException {
         return putObject(bucketName, objectName, null, stream);
     }
 
@@ -437,11 +439,11 @@ public class MinioService {
      * @return
      */
     public ObjectWriteResponse putObject(String bucketName, String objectName, String contentType,
-                                         InputStream stream) throws MinioException {
+                                         InputStream stream) throws MinioServiceException {
         try {
             return putObject(bucketName, objectName, contentType, stream, stream.available(), ObjectWriteArgs.MIN_MULTIPART_SIZE);
         } catch (IOException e) {
-            throw new MinioException(e.getMessage());
+            throw new MinioServiceException("Failed to upload object: " + objectName + " to bucket: " + bucketName, e);
         }
     }
 
@@ -456,7 +458,7 @@ public class MinioService {
      * @return
      */
     public ObjectWriteResponse putObject(String bucketName, String objectName, String contentType,
-                                         InputStream stream, long objectSize) throws MinioException {
+                                         InputStream stream, long objectSize) throws MinioServiceException {
         return putObject(bucketName, objectName, contentType, stream, objectSize, -1);
     }
 
@@ -472,7 +474,7 @@ public class MinioService {
      * @return
      */
     public ObjectWriteResponse putObject(String bucketName, String objectName, String contentType,
-                                         InputStream stream, long objectSize, long partSize) throws MinioException {
+                                         InputStream stream, long objectSize, long partSize) throws MinioServiceException {
         try {
             return minioClient.putObject(PutObjectArgs.builder()
                     .bucket(bucketName)
@@ -483,7 +485,54 @@ public class MinioService {
         } catch (ErrorResponseException | IOException | InsufficientDataException
                  | InternalException | InvalidKeyException | InvalidResponseException
                  | NoSuchAlgorithmException | XmlParserException | ServerException e) {
-            throw new MinioException(e.getMessage());
+            throw new MinioServiceException("Failed to upload object: " + objectName + " to bucket: " + bucketName, e);
+        }
+    }
+
+
+    /**
+     * 上传大型对象的一部分到Minio存储桶，作为多部分上传过程的一部分。
+     * 当对象大小超过单次上传限制时，通常使用此方法。
+     *
+     * @param region 存储桶所在的区域。
+     * @param objectName 要上传的对象名称。
+     * @param data 要上传的对象部分的数据内容。
+     * @param length 要上传的数据长度，单位为字节。
+     * @param uploadId 唯一标识多部分上传会话的上传ID。initMultiPartUpload()
+     * @param partNumber 该多部分上传中的部分序号。每个部分都有一个唯一的序号。
+     * @param extraHeaders 上传请求中可选的额外HTTP头信息。
+     * @param extraQueryParams 上传请求中可选的额外HTTP查询参数。
+     * @throws MinioServiceException 如果在上传过程中发生任何错误。
+     */
+    public void uploadPart(String region, String objectName, Object data, int length, String uploadId,
+                           int partNumber, Multimap<String, String> extraHeaders, Multimap<String, String> extraQueryParams) throws MinioServiceException {
+        uploadPart(getBucketName(), region, objectName, data, length, uploadId, partNumber, extraHeaders, extraQueryParams);
+    }
+
+    /**
+     * 上传大型对象的一部分到Minio存储桶，作为多部分上传过程的一部分。
+     * 当对象大小超过单次上传限制时，通常使用此方法。
+     *
+     * @param bucketName 存储桶的名称，该桶用于存放上传的对象。
+     * @param region 存储桶所在的区域。
+     * @param objectName 要上传的对象名称。
+     * @param data 要上传的对象部分的数据内容。
+     * @param length 要上传的数据长度，单位为字节。
+     * @param uploadId 唯一标识多部分上传会话的上传ID。initMultiPartUpload()
+     * @param partNumber 该多部分上传中的部分序号。每个部分都有一个唯一的序号。
+     * @param extraHeaders 上传请求中可选的额外HTTP头信息。
+     * @param extraQueryParams 上传请求中可选的额外HTTP查询参数。
+     * @throws MinioServiceException 如果在上传过程中发生任何错误。
+     */
+    public void uploadPart(String bucketName, String region, String objectName, Object data, int length, String uploadId,
+                           int partNumber, Multimap<String, String> extraHeaders, Multimap<String, String> extraQueryParams) throws MinioServiceException {
+        try {
+            minioAsyncClient.uploadPart(bucketName, region, objectName, data, length, uploadId, partNumber, extraHeaders, extraQueryParams);
+        } catch (IOException | InsufficientDataException
+                 | InternalException | InvalidKeyException | NoSuchAlgorithmException | XmlParserException |
+                 ExecutionException |
+                 InterruptedException e) {
+            throw new MinioServiceException("Failed to upload object: " + objectName + " to bucket: " + bucketName, e);
         }
     }
 
@@ -493,7 +542,7 @@ public class MinioService {
      * @param objectName
      * @return
      */
-    public boolean removeObject(String objectName) throws MinioException {
+    public boolean removeObject(String objectName) throws MinioServiceException {
         return removeObject(getBucketName(), objectName);
     }
 
@@ -504,14 +553,14 @@ public class MinioService {
      * @param objectName
      * @return
      */
-    public boolean removeObject(String bucketName, String objectName) throws MinioException {
+    public boolean removeObject(String bucketName, String objectName) throws MinioServiceException {
         try {
             minioClient.removeObject(RemoveObjectArgs.builder().bucket(bucketName).object(CustomUtil.getObjectName(objectName)).build());
             return true;
         } catch (ErrorResponseException | IOException | InsufficientDataException
                  | InternalException | InvalidKeyException | InvalidResponseException
                  | NoSuchAlgorithmException | XmlParserException | ServerException e) {
-            throw new MinioException(e.getMessage());
+            throw new MinioServiceException("Failed to remove object: " + objectName + " from bucket: " + bucketName, e);
         }
     }
 
@@ -522,7 +571,7 @@ public class MinioService {
      * @param objectNames
      * @return
      */
-    public List<String> removeObjects(String bucketName, Collection<String> objectNames) throws MinioException {
+    public List<String> removeObjects(String bucketName, Collection<String> objectNames) throws MinioServiceException {
         List<DeleteObject> objects = objectNames.stream().map(CustomUtil::getObjectName).map(DeleteObject::new).collect(Collectors.toList());
         Iterable<Result<DeleteError>> results = minioClient.removeObjects(RemoveObjectsArgs.builder().bucket(bucketName).objects(objects).build());
         List<String> errorDeleteObjects = new ArrayList<>();
@@ -535,7 +584,7 @@ public class MinioService {
         } catch (ErrorResponseException | IOException | InsufficientDataException
                  | InternalException | InvalidKeyException | InvalidResponseException
                  | NoSuchAlgorithmException | XmlParserException | ServerException e) {
-            throw new MinioException(e.getMessage());
+            throw new MinioServiceException("Failed to remove objects from bucket: " + bucketName, e);
         }
         return errorDeleteObjects;
     }
@@ -547,7 +596,7 @@ public class MinioService {
      * @return
      * @throws MinioException
      */
-    public Map<String, String> getPresignedPostFormData(String fileName) throws MinioException {
+    public Map<String, String> getPresignedPostFormData(String fileName) throws MinioServiceException {
         return getPresignedPostFormData(getBucketName(), fileName);
     }
 
@@ -559,7 +608,7 @@ public class MinioService {
      * @return
      * @throws MinioException
      */
-    public Map<String, String> getPresignedPostFormData(String bucketName, String fileName) throws MinioException {
+    public Map<String, String> getPresignedPostFormData(String bucketName, String fileName) throws MinioServiceException {
         return getPresignedPostFormData(bucketName, fileName, ZonedDateTime.now().plusMinutes(10));
     }
 
@@ -572,7 +621,7 @@ public class MinioService {
      * @return
      * @throws MinioException
      */
-    public Map<String, String> getPresignedPostFormData(String bucketName, String fileName, ZonedDateTime time) throws MinioException {
+    public Map<String, String> getPresignedPostFormData(String bucketName, String fileName, ZonedDateTime time) throws MinioServiceException {
         return getPresignedPostFormData(bucketName, null, fileName, time);
     }
 
@@ -585,7 +634,7 @@ public class MinioService {
      * @return
      * @throws MinioException
      */
-    public Map<String, String> getPresignedPostFormData(String bucketName, String path, String fileName) throws MinioException {
+    public Map<String, String> getPresignedPostFormData(String bucketName, String path, String fileName) throws MinioServiceException {
         return getPresignedPostFormData(bucketName, path, fileName, ZonedDateTime.now().plusMinutes(10));
     }
 
@@ -599,7 +648,7 @@ public class MinioService {
      * @return
      * @throws MinioException
      */
-    public Map<String, String> getPresignedPostFormData(String bucketName, String path, String fileName, ZonedDateTime time) throws MinioException {
+    public Map<String, String> getPresignedPostFormData(String bucketName, String path, String fileName, ZonedDateTime time) throws MinioServiceException {
         PostPolicy postPolicy = new PostPolicy(bucketName, time);
         String key = MinioConstant.URI_DELIMITER + CustomUtil.getPath(path) + fileName;
         postPolicy.addEqualsCondition("key", key);
@@ -613,7 +662,7 @@ public class MinioService {
         } catch (ErrorResponseException | IOException | InsufficientDataException
                  | InternalException | InvalidKeyException | InvalidResponseException
                  | NoSuchAlgorithmException | XmlParserException | ServerException e) {
-            throw new MinioException(e.getMessage());
+            throw new MinioServiceException("Failed to get presigned POST form data for file: " + fileName + " in bucket: " + bucketName, e);
         }
     }
 
@@ -624,7 +673,7 @@ public class MinioService {
      * @return
      * @throws MinioException
      */
-    public String getPresignedObjectPutUrl(String objectName) throws MinioException {
+    public String getPresignedObjectPutUrl(String objectName) throws MinioServiceException {
         return getPresignedObjectPutUrl(getBucketName(), objectName);
     }
 
@@ -636,7 +685,7 @@ public class MinioService {
      * @return
      * @throws MinioException
      */
-    public String getPresignedObjectPutUrl(String bucketName, String objectName) throws MinioException {
+    public String getPresignedObjectPutUrl(String bucketName, String objectName) throws MinioServiceException {
         return getPresignedObjectPutUrl(bucketName, null, objectName);
     }
 
@@ -649,7 +698,7 @@ public class MinioService {
      * @return
      * @throws MinioException
      */
-    public String getPresignedObjectPutUrl(String bucketName, String path, String objectName) throws MinioException {
+    public String getPresignedObjectPutUrl(String bucketName, String path, String objectName) throws MinioServiceException {
         return getPresignedObjectPutUrl(bucketName, path, objectName, 5);
     }
 
@@ -662,7 +711,7 @@ public class MinioService {
      * @return
      * @throws MinioException
      */
-    public String getPresignedObjectPutUrl(String bucketName, String path, String objectName, Integer time) throws MinioException {
+    public String getPresignedObjectPutUrl(String bucketName, String path, String objectName, Integer time) throws MinioServiceException {
         return getPresignedObjectPutUrl(bucketName, path, objectName, time, TimeUnit.MINUTES);
     }
 
@@ -677,7 +726,7 @@ public class MinioService {
      * @return
      * @throws MinioException
      */
-    public String getPresignedObjectPutUrl(String bucketName, String path, String objectName, Integer time, TimeUnit timeUnit) throws MinioException {
+    public String getPresignedObjectPutUrl(String bucketName, String path, String objectName, Integer time, TimeUnit timeUnit) throws MinioServiceException {
         try {
             objectName = (StringUtils.hasText(path) ? CustomUtil.getPath(path) : "") + CustomUtil.getObjectName(objectName);
             return minioClient.getPresignedObjectUrl(GetPresignedObjectUrlArgs.builder()
@@ -688,7 +737,7 @@ public class MinioService {
         } catch (ErrorResponseException | IOException | InsufficientDataException
                  | InternalException | InvalidKeyException | InvalidResponseException
                  | NoSuchAlgorithmException | XmlParserException | ServerException e) {
-            throw new MinioException(e.getMessage());
+            throw new MinioServiceException("Failed to get presigned PUT URL for object: " + objectName + " in bucket: " + bucketName, e);
         }
     }
 
@@ -700,7 +749,7 @@ public class MinioService {
      * @return
      * @throws MinioException
      */
-    public MultiPartUploadInfo getPresignedMultipartUploadUrls(String objectName, Integer partSize) throws MinioException {
+    public MultiPartUploadInfo getPresignedMultipartUploadUrls(String objectName, Integer partSize) throws MinioServiceException {
         return getPresignedMultipartUploadUrls(getBucketName(), objectName, partSize);
     }
 
@@ -712,7 +761,7 @@ public class MinioService {
      * @return
      * @throws MinioException
      */
-    public MultiPartUploadInfo getPresignedMultipartUploadUrls(String objectName, Integer partSize, String contentType) throws MinioException {
+    public MultiPartUploadInfo getPresignedMultipartUploadUrls(String objectName, Integer partSize, String contentType) throws MinioServiceException {
         return getPresignedMultipartUploadUrls(getBucketName(), objectName, partSize, contentType);
     }
 
@@ -725,7 +774,7 @@ public class MinioService {
      * @return
      * @throws MinioException
      */
-    public MultiPartUploadInfo getPresignedMultipartUploadUrls(String bucketName, String objectName, Integer partSize) throws MinioException {
+    public MultiPartUploadInfo getPresignedMultipartUploadUrls(String bucketName, String objectName, Integer partSize) throws MinioServiceException {
         return getPresignedMultipartUploadUrls(bucketName, null, objectName, partSize);
     }
 
@@ -739,7 +788,7 @@ public class MinioService {
      * @return
      * @throws MinioException
      */
-    public MultiPartUploadInfo getPresignedMultipartUploadUrls(String bucketName, String objectName, Integer partSize, String contentType) throws MinioException {
+    public MultiPartUploadInfo getPresignedMultipartUploadUrls(String bucketName, String objectName, Integer partSize, String contentType) throws MinioServiceException {
         return getPresignedMultipartUploadUrls(bucketName, null, objectName, partSize, contentType);
     }
 
@@ -753,7 +802,7 @@ public class MinioService {
      * @return
      * @throws MinioException
      */
-    public MultiPartUploadInfo getPresignedMultipartUploadUrls(String bucketName, String path, String objectName, Integer partSize) throws MinioException {
+    public MultiPartUploadInfo getPresignedMultipartUploadUrls(String bucketName, String path, String objectName, Integer partSize) throws MinioServiceException {
         return getPresignedMultipartUploadUrls(bucketName, path, objectName, partSize, null);
     }
 
@@ -768,7 +817,7 @@ public class MinioService {
      * @return
      * @throws MinioException
      */
-    public MultiPartUploadInfo getPresignedMultipartUploadUrls(String bucketName, String path, String objectName, Integer partSize, String contentType) throws MinioException {
+    public MultiPartUploadInfo getPresignedMultipartUploadUrls(String bucketName, String path, String objectName, Integer partSize, String contentType) throws MinioServiceException {
         return getPresignedMultipartUploadUrls(bucketName, path, objectName, partSize, contentType, 10);
     }
 
@@ -784,7 +833,7 @@ public class MinioService {
      * @return
      * @throws MinioException
      */
-    public MultiPartUploadInfo getPresignedMultipartUploadUrls(String bucketName, String path, String objectName, Integer partSize, String contentType, Integer time) throws MinioException {
+    public MultiPartUploadInfo getPresignedMultipartUploadUrls(String bucketName, String path, String objectName, Integer partSize, String contentType, Integer time) throws MinioServiceException {
         return getPresignedMultipartUploadUrls(bucketName, path, objectName, partSize, contentType, time, TimeUnit.MINUTES);
     }
 
@@ -801,7 +850,7 @@ public class MinioService {
      * @return
      * @throws MinioException
      */
-    public MultiPartUploadInfo getPresignedMultipartUploadUrls(String bucketName, String path, String objectName, Integer partSize, String contentType, Integer time, TimeUnit timeUnit) throws MinioException {
+    public MultiPartUploadInfo getPresignedMultipartUploadUrls(String bucketName, String path, String objectName, Integer partSize, String contentType, Integer time, TimeUnit timeUnit) throws MinioServiceException {
         String uploadId = "";
         List<String> partUrlList = new ArrayList<>();
         try {
@@ -824,8 +873,9 @@ public class MinioService {
                 partUrlList.add(uploadUrl);
             }
         } catch (IOException | InsufficientDataException | InternalException | InvalidKeyException |
-                 NoSuchAlgorithmException | XmlParserException e) {
-            throw new MinioException(e.getMessage());
+                 NoSuchAlgorithmException | XmlParserException | ErrorResponseException | InvalidResponseException |
+                 ServerException e) {
+            throw new MinioServiceException("Failed to get presigned multipart upload URLs for object: " + objectName + " in bucket: " + bucketName, e);
         }
 
         return MultiPartUploadInfo.builder()
@@ -844,7 +894,7 @@ public class MinioService {
      * @param partNumbers 分片partNumber集合
      * @return
      */
-    public MultiPartUploadInfo getPresignedMultipartUploadUrlsByPartNumbers(String uploadId, String objectName, List<Integer> partNumbers) throws MinioException {
+    public MultiPartUploadInfo getPresignedMultipartUploadUrlsByPartNumbers(String uploadId, String objectName, List<Integer> partNumbers) throws MinioServiceException {
         return getPresignedMultipartUploadUrlsByPartNumbers(uploadId, getBucketName(), objectName, partNumbers);
     }
 
@@ -857,7 +907,7 @@ public class MinioService {
      * @param partNumbers 分片partNumber集合
      * @return
      */
-    public MultiPartUploadInfo getPresignedMultipartUploadUrlsByPartNumbers(String uploadId, String bucketName, String objectName, List<Integer> partNumbers) throws MinioException {
+    public MultiPartUploadInfo getPresignedMultipartUploadUrlsByPartNumbers(String uploadId, String bucketName, String objectName, List<Integer> partNumbers) throws MinioServiceException {
         return getPresignedMultipartUploadUrlsByPartNumbers(uploadId, bucketName, null, objectName, partNumbers);
     }
 
@@ -870,7 +920,7 @@ public class MinioService {
      * @param partNumbers 分片partNumber集合
      * @return
      */
-    public MultiPartUploadInfo getPresignedMultipartUploadUrlsByPartNumbers(String uploadId, String bucketName, String path, String objectName, List<Integer> partNumbers) throws MinioException {
+    public MultiPartUploadInfo getPresignedMultipartUploadUrlsByPartNumbers(String uploadId, String bucketName, String path, String objectName, List<Integer> partNumbers) throws MinioServiceException {
         return getPresignedMultipartUploadUrlsByPartNumbers(uploadId, bucketName, path, objectName, partNumbers, 10);
     }
 
@@ -884,7 +934,7 @@ public class MinioService {
      * @param time        过期时间，默认10分钟
      * @return
      */
-    public MultiPartUploadInfo getPresignedMultipartUploadUrlsByPartNumbers(String uploadId, String bucketName, String path, String objectName, List<Integer> partNumbers, Integer time) throws MinioException {
+    public MultiPartUploadInfo getPresignedMultipartUploadUrlsByPartNumbers(String uploadId, String bucketName, String path, String objectName, List<Integer> partNumbers, Integer time) throws MinioServiceException {
         return getPresignedMultipartUploadUrlsByPartNumbers(uploadId, bucketName, path, objectName, partNumbers, time, TimeUnit.MINUTES);
     }
 
@@ -899,7 +949,7 @@ public class MinioService {
      * @param timeUnit    过期时间单位，默认分钟
      * @return
      */
-    public MultiPartUploadInfo getPresignedMultipartUploadUrlsByPartNumbers(String uploadId, String bucketName, String path, String objectName, List<Integer> partNumbers, Integer time, TimeUnit timeUnit) throws MinioException {
+    public MultiPartUploadInfo getPresignedMultipartUploadUrlsByPartNumbers(String uploadId, String bucketName, String path, String objectName, List<Integer> partNumbers, Integer time, TimeUnit timeUnit) throws MinioServiceException {
         List<String> partUrlList = new ArrayList<>();
         try {
             objectName = (StringUtils.hasText(path) ? CustomUtil.getPath(path) : "") + CustomUtil.getObjectName(objectName);
@@ -919,8 +969,9 @@ public class MinioService {
                 partUrlList.add(uploadUrl);
             }
         } catch (IOException | InsufficientDataException | InternalException | InvalidKeyException |
-                 NoSuchAlgorithmException | XmlParserException e) {
-            throw new MinioException(e.getMessage());
+                 NoSuchAlgorithmException | XmlParserException | ErrorResponseException | InvalidResponseException |
+                 ServerException e) {
+            throw new MinioServiceException("Failed to get presigned multipart upload URLs for object: " + objectName + " in bucket: " + bucketName, e);
         }
 
         return MultiPartUploadInfo.builder()
@@ -938,7 +989,7 @@ public class MinioService {
      * @return
      * @throws MinioException
      */
-    public InitiateMultipartUploadResult initMultiPartUpload(String objectName) throws MinioException {
+    public InitiateMultipartUploadResult initMultiPartUpload(String objectName) throws MinioServiceException {
         return initMultiPartUpload(getBucketName(), objectName);
     }
 
@@ -950,7 +1001,7 @@ public class MinioService {
      * @return
      * @throws MinioException
      */
-    public InitiateMultipartUploadResult initMultiPartUpload(String bucketName, String objectName) throws MinioException {
+    public InitiateMultipartUploadResult initMultiPartUpload(String bucketName, String objectName) throws MinioServiceException {
         return initMultiPartUpload(bucketName, null, objectName);
     }
 
@@ -962,7 +1013,7 @@ public class MinioService {
      * @return
      * @throws MinioException
      */
-    public InitiateMultipartUploadResult initMultiPartUpload(String bucketName, String path, String objectName) throws MinioException {
+    public InitiateMultipartUploadResult initMultiPartUpload(String bucketName, String path, String objectName) throws MinioServiceException {
         return initMultiPartUpload(bucketName, path, objectName, "application/octet-stream");
     }
 
@@ -975,13 +1026,13 @@ public class MinioService {
      * @return
      * @throws MinioException
      */
-    public InitiateMultipartUploadResult initMultiPartUpload(String bucketName, String path, String objectName, String contentType) throws MinioException {
+    public InitiateMultipartUploadResult initMultiPartUpload(String bucketName, String path, String objectName, String contentType) throws MinioServiceException {
         try {
             objectName = (StringUtils.hasText(path) ? CustomUtil.getPath(path) : "") + CustomUtil.getObjectName(objectName);
             return minioAsyncClient.initMultiPartUpload(bucketName, null, objectName, CustomUtil.getHeader(contentType), null);
         } catch (IOException | InsufficientDataException | InternalException | InvalidKeyException |
                  NoSuchAlgorithmException | XmlParserException | ExecutionException | InterruptedException e) {
-            throw new MinioException(e.getMessage());
+            throw new MinioServiceException("Failed to initiate multipart upload for object: " + objectName + " in bucket: " + bucketName, e);
         }
     }
 
@@ -993,7 +1044,7 @@ public class MinioService {
      * @return
      * @throws MinioException
      */
-    public String mergeMultiPartUpload(String objectName, String uploadId) throws MinioException {
+    public String mergeMultiPartUpload(String objectName, String uploadId) throws MinioServiceException {
         return mergeMultiPartUpload(getBucketName(), objectName, uploadId);
     }
 
@@ -1006,7 +1057,7 @@ public class MinioService {
      * @return
      * @throws MinioException
      */
-    public String mergeMultiPartUpload(String bucketName, String objectName, String uploadId) throws MinioException {
+    public String mergeMultiPartUpload(String bucketName, String objectName, String uploadId) throws MinioServiceException {
         return mergeMultiPartUpload(bucketName, objectName, uploadId, 1000);
     }
 
@@ -1020,24 +1071,25 @@ public class MinioService {
      * @return
      * @throws MinioException
      */
-    public String mergeMultiPartUpload(String bucketName, String objectName, String uploadId, Integer maxParts) throws MinioException {
+    public String mergeMultiPartUpload(String bucketName, String objectName, String uploadId, Integer maxParts) throws MinioServiceException {
         try {
             ListPartsResponse partsResponse = minioAsyncClient.listMultipart(bucketName, null, CustomUtil.getObjectName(objectName), maxParts, 0, uploadId, null, null);
             if (null == partsResponse) {
-                throw new MinioException("分片列表为空");
+                throw new MinioServiceException("No parts response available for object: " + objectName + " in bucket: " + bucketName + ", upload ID: " + uploadId);
             }
             List<Part> partList = partsResponse.result().partList();
             Part[] parts = new Part[partList.size()];
             partList.toArray(parts);
             ObjectWriteResponse writeResponse = minioAsyncClient.mergeMultipartUpload(bucketName, null, CustomUtil.getObjectName(objectName), uploadId, parts, null, null);
             if (null == writeResponse) {
-                throw new MinioException("分片合并失败");
+                throw new MinioServiceException("Failed to complete multipart upload for object: " + objectName + " in bucket: " + bucketName + ", upload ID: " + uploadId);
             }
             return getAddress(writeResponse.region());
-        } catch (ErrorResponseException | IOException | InsufficientDataException | InternalException |
-                 InvalidKeyException | InvalidResponseException | NoSuchAlgorithmException | XmlParserException |
-                 ServerException | ExecutionException | InterruptedException e) {
-            throw new MinioException(e.getMessage());
+        } catch (IOException | InsufficientDataException | InternalException |
+                 InvalidKeyException | NoSuchAlgorithmException | XmlParserException |
+                 ExecutionException | InterruptedException e) {
+            throw new MinioServiceException("Failed to merge multipart upload for object: " + objectName + " in bucket: " + bucketName + ", upload ID: " + uploadId, e);
+
         }
     }
 
@@ -1049,7 +1101,7 @@ public class MinioService {
      * @return
      * @throws MinioException
      */
-    public List<Integer> listUploadMultiPart(String objectName, String uploadId) throws MinioException {
+    public List<Integer> listUploadMultiPart(String objectName, String uploadId) throws MinioServiceException {
         return listUploadMultiPart(getBucketName(), objectName, uploadId);
     }
 
@@ -1062,7 +1114,7 @@ public class MinioService {
      * @return
      * @throws MinioException
      */
-    public List<Integer> listUploadMultiPart(String bucketName, String objectName, String uploadId) throws MinioException {
+    public List<Integer> listUploadMultiPart(String bucketName, String objectName, String uploadId) throws MinioServiceException {
         return listUploadMultiPart(bucketName, objectName, uploadId, 1000);
     }
 
@@ -1076,13 +1128,13 @@ public class MinioService {
      * @return
      * @throws MinioException
      */
-    public List<Integer> listUploadMultiPart(String bucketName, String objectName, String uploadId, Integer maxParts) throws MinioException {
+    public List<Integer> listUploadMultiPart(String bucketName, String objectName, String uploadId, Integer maxParts) throws MinioServiceException {
         ListPartsResponse partsResponse;
         try {
             partsResponse = minioAsyncClient.listMultipart(bucketName, null, CustomUtil.getObjectName(objectName), maxParts, 0, uploadId, null, null);
         } catch (NoSuchAlgorithmException | IOException | InvalidKeyException | ExecutionException |
-                 InterruptedException e) {
-            throw new MinioException(e.getMessage());
+                 InterruptedException | InsufficientDataException | XmlParserException | InternalException e) {
+            throw new MinioServiceException("Failed to list multipart upload parts for object: " + objectName + " in bucket: " + bucketName + ", upload ID: " + uploadId, e);
         }
         if (null == partsResponse) {
             return Collections.emptyList();
