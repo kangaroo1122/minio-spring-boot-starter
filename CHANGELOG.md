@@ -1,3 +1,9 @@
+## 3.1.8.5.11
+
+- 优化异常处理，具有破坏性！！！[#PR2](https://github.com/kangaroo1122/minio-spring-boot-starter/pull/2)
+- 新增uploadPart方法，用于处理后端分片上传问题 [#PR2](https://github.com/kangaroo1122/minio-spring-boot-starter/pull/2)
+- 升级sdk到8.5.11版本
+
 ## 3.1.8.5.10
 
 - 升级sdk到8.5.10版本
