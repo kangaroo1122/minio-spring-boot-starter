@@ -494,13 +494,13 @@ public class MinioService {
      * 上传大型对象的一部分到Minio存储桶，作为多部分上传过程的一部分。
      * 当对象大小超过单次上传限制时，通常使用此方法。
      *
-     * @param region 存储桶所在的区域。
-     * @param objectName 要上传的对象名称。
-     * @param data 要上传的对象部分的数据内容。
-     * @param length 要上传的数据长度，单位为字节。
-     * @param uploadId 唯一标识多部分上传会话的上传ID。initMultiPartUpload()
-     * @param partNumber 该多部分上传中的部分序号。每个部分都有一个唯一的序号。
-     * @param extraHeaders 上传请求中可选的额外HTTP头信息。
+     * @param region           存储桶所在的区域。
+     * @param objectName       要上传的对象名称。
+     * @param data             要上传的对象部分的数据内容。
+     * @param length           要上传的数据长度，单位为字节。
+     * @param uploadId         唯一标识多部分上传会话的上传ID。initMultiPartUpload()
+     * @param partNumber       该多部分上传中的部分序号。每个部分都有一个唯一的序号。
+     * @param extraHeaders     上传请求中可选的额外HTTP头信息。
      * @param extraQueryParams 上传请求中可选的额外HTTP查询参数。
      * @throws MinioServiceException 如果在上传过程中发生任何错误。
      */
@@ -513,14 +513,14 @@ public class MinioService {
      * 上传大型对象的一部分到Minio存储桶，作为多部分上传过程的一部分。
      * 当对象大小超过单次上传限制时，通常使用此方法。
      *
-     * @param bucketName 存储桶的名称，该桶用于存放上传的对象。
-     * @param region 存储桶所在的区域。
-     * @param objectName 要上传的对象名称。
-     * @param data 要上传的对象部分的数据内容。
-     * @param length 要上传的数据长度，单位为字节。
-     * @param uploadId 唯一标识多部分上传会话的上传ID。initMultiPartUpload()
-     * @param partNumber 该多部分上传中的部分序号。每个部分都有一个唯一的序号。
-     * @param extraHeaders 上传请求中可选的额外HTTP头信息。
+     * @param bucketName       存储桶的名称，该桶用于存放上传的对象。
+     * @param region           存储桶所在的区域。
+     * @param objectName       要上传的对象名称。
+     * @param data             要上传的对象部分的数据内容。
+     * @param length           要上传的数据长度，单位为字节。
+     * @param uploadId         唯一标识多部分上传会话的上传ID。initMultiPartUpload()
+     * @param partNumber       该多部分上传中的部分序号。每个部分都有一个唯一的序号。
+     * @param extraHeaders     上传请求中可选的额外HTTP头信息。
      * @param extraQueryParams 上传请求中可选的额外HTTP查询参数。
      * @throws MinioServiceException 如果在上传过程中发生任何错误。
      */

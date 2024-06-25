@@ -1,6 +1,6 @@
 package com.kangaroohy.minio.exceptions;
 
-public class MinioServiceException extends Exception{
+public class MinioServiceException extends Exception {
     protected MinioServiceException(String message, Throwable cause, boolean enableSuppression, boolean writableStackTrace) {
         super(message, cause, enableSuppression, writableStackTrace);
     }
